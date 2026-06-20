@@ -19,9 +19,10 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
         'email',
         'password',
+        'role',
+        'is_active',
     ];
 
     /**
@@ -44,6 +45,34 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    // Helper Role
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isPetugas()
+    {
+        return $this->role === 'petugas';
+    }
+
+    public function isSiswa()
+    {
+        return $this->role === 'siswa';
+    }
+
+    // Relationship
+    public function siswa()
+    {
+        return $this->hasOne(Siswa::class);
+    }
+
+    public function petugas()
+    {
+        return $this->hasOne(Petugas::class);
     }
 }
