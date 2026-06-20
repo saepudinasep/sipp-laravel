@@ -8,24 +8,28 @@ export default function ConfirmDeleteModal({ open, onClose, onDelete }: Props) {
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-xl w-[400px]">
-                <h2 className="font-bold mb-3">Hapus Data?</h2>
+        <div className="modal-overlay open">
+            <div className="modal" style={{ maxWidth: 400 }}>
+                <div className="modal-head">
+                    <h3>Hapus Data?</h3>
+                    <button className="modal-close" onClick={onClose}>
+                        ✕
+                    </button>
+                </div>
 
-                <p>Data akan dipindahkan ke soft delete.</p>
+                <div className="modal-body">
+                    <p style={{ fontSize: 13, color: "var(--text2)" }}>
+                        Data akan dipindahkan ke soft delete dan dapat
+                        dipulihkan kembali bila diperlukan.
+                    </p>
+                </div>
 
-                <div className="flex justify-end gap-2 mt-6">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 border rounded"
-                    >
+                <div className="modal-foot">
+                    <button className="btn btn-outline" onClick={onClose}>
                         Batal
                     </button>
 
-                    <button
-                        onClick={onDelete}
-                        className="px-4 py-2 bg-red-600 text-white rounded"
-                    >
+                    <button className="btn btn-danger" onClick={onDelete}>
                         Hapus
                     </button>
                 </div>

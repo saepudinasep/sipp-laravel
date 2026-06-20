@@ -1,8 +1,4 @@
-import Checkbox from "@/Components/Checkbox";
 import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import PrimaryButton from "@/Components/PrimaryButton";
-import TextInput from "@/Components/TextInput";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { FormEventHandler } from "react";
@@ -32,168 +28,172 @@ export default function Login({
         <GuestLayout>
             <Head title="Login" />
 
-            <div className="flex min-h-screen">
-                {/* Left Side */}
-                <div className="hidden lg:flex lg:w-1/2 bg-slate-950 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-900" />
+            <div className="login-wrap">
+                <div className="login-deco" />
 
-                    <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-                        <div className="mb-6">
-                            <span className="rounded-full bg-blue-500/20 px-4 py-2 text-sm text-blue-300">
-                                Sistem Pembayaran SPP Digital
-                            </span>
+                {/* Left side — branding */}
+                <div className="login-left">
+                    <div className="login-logo">
+                        <div className="login-logo-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
+                            </svg>
                         </div>
+                        <div className="login-logo-name">
+                            Si<span>PP</span>
+                        </div>
+                    </div>
 
-                        <h1 className="text-5xl font-extrabold leading-tight">
-                            Selamat Datang
+                    <div className="login-hero">
+                        <h1>
+                            Sistem Informasi
                             <br />
-                            di <span className="text-blue-400">SiPP</span>
+                            Pembayaran SPP
                         </h1>
-
-                        <p className="mt-6 max-w-lg text-slate-300">
-                            Kelola pembayaran SPP sekolah dengan lebih cepat,
-                            transparan, dan terintegrasi dalam satu sistem.
+                        <p>
+                            Platform digital terintegrasi untuk pengelolaan
+                            pembayaran SPP sekolah yang akurat, cepat, dan
+                            transparan.
                         </p>
+                    </div>
 
-                        <div className="mt-12 grid grid-cols-3 gap-6">
-                            <div>
-                                <h3 className="text-3xl font-bold text-white">
-                                    1200+
-                                </h3>
-                                <p className="text-sm text-slate-400">Siswa</p>
-                            </div>
-
-                            <div>
-                                <h3 className="text-3xl font-bold text-white">
-                                    28jt+
-                                </h3>
-                                <p className="text-sm text-slate-400">
-                                    Pembayaran
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="text-3xl font-bold text-white">
-                                    99%
-                                </h3>
-                                <p className="text-sm text-slate-400">Uptime</p>
-                            </div>
+                    <div className="login-stats">
+                        <div className="stat-item">
+                            <div className="stat-num">3</div>
+                            <div className="stat-label">Level Akses</div>
+                        </div>
+                        <div className="stat-item">
+                            <div className="stat-num">100%</div>
+                            <div className="stat-label">Tercatat Digital</div>
+                        </div>
+                        <div className="stat-item">
+                            <div className="stat-num">Real-time</div>
+                            <div className="stat-label">Status Pembayaran</div>
                         </div>
                     </div>
                 </div>
 
-                {/* Right Side */}
-                <div className="flex w-full items-center justify-center bg-slate-50 px-6 lg:w-1/2">
-                    <div className="w-full max-w-md">
-                        <div className="rounded-3xl bg-white p-8 shadow-xl">
-                            <div className="mb-8 text-center">
-                                <h2 className="text-3xl font-bold text-slate-900">
-                                    Login
-                                </h2>
+                {/* Right side — form */}
+                <div className="login-right">
+                    <div className="login-card">
+                        <h2>Selamat Datang</h2>
+                        <p>Masuk ke Sistem Pembayaran SPP</p>
 
-                                <p className="mt-2 text-sm text-slate-500">
-                                    Masuk ke Sistem Pembayaran SPP
-                                </p>
+                        {status && (
+                            <div
+                                style={{
+                                    marginBottom: 18,
+                                    padding: "10px 14px",
+                                    borderRadius: 8,
+                                    background: "rgba(16,185,129,.12)",
+                                    border: "1px solid rgba(16,185,129,.25)",
+                                    color: "#34d399",
+                                    fontSize: 12,
+                                }}
+                            >
+                                {status}
+                            </div>
+                        )}
+
+                        <form onSubmit={submit}>
+                            <div className="login-field">
+                                <label htmlFor="email">Email</label>
+                                <input
+                                    id="email"
+                                    type="email"
+                                    name="email"
+                                    value={data.email}
+                                    autoComplete="username"
+                                    autoFocus
+                                    placeholder="nama@sekolah.id"
+                                    onChange={(e) =>
+                                        setData("email", e.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={errors.email}
+                                    className="login-error"
+                                />
                             </div>
 
-                            {status && (
-                                <div className="mb-4 rounded-lg bg-green-100 p-3 text-sm text-green-700">
-                                    {status}
-                                </div>
-                            )}
-
-                            <form onSubmit={submit}>
-                                <div>
-                                    <InputLabel htmlFor="email" value="Email" />
-
-                                    <TextInput
-                                        id="email"
-                                        type="email"
-                                        name="email"
-                                        value={data.email}
-                                        className="mt-2 block w-full rounded-xl"
-                                        autoComplete="username"
-                                        isFocused={true}
-                                        onChange={(e) =>
-                                            setData("email", e.target.value)
-                                        }
-                                    />
-
-                                    <InputError
-                                        message={errors.email}
-                                        className="mt-2"
-                                    />
-                                </div>
-
-                                <div className="mt-5">
-                                    <InputLabel
-                                        htmlFor="password"
-                                        value="Password"
-                                    />
-
-                                    <TextInput
-                                        id="password"
-                                        type="password"
-                                        name="password"
-                                        value={data.password}
-                                        className="mt-2 block w-full rounded-xl"
-                                        autoComplete="current-password"
-                                        onChange={(e) =>
-                                            setData("password", e.target.value)
-                                        }
-                                    />
-
-                                    <InputError
-                                        message={errors.password}
-                                        className="mt-2"
-                                    />
-                                </div>
-
-                                <div className="mt-5 flex items-center justify-between">
-                                    <label className="flex items-center">
-                                        <Checkbox
-                                            name="remember"
-                                            checked={data.remember}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "remember",
-                                                    e.target.checked,
-                                                )
-                                            }
-                                        />
-
-                                        <span className="ml-2 text-sm text-slate-600">
-                                            Ingat Saya
-                                        </span>
-                                    </label>
-
-                                    {canResetPassword && (
-                                        <Link
-                                            href={route("password.request")}
-                                            className="text-sm text-blue-600 hover:text-blue-700"
-                                        >
-                                            Lupa Password?
-                                        </Link>
-                                    )}
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="mt-6 w-full rounded-xl bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
-                                >
-                                    {processing ? "Memproses..." : "Masuk"}
-                                </button>
-                            </form>
-
-                            <div className="mt-6 border-t pt-6 text-center">
-                                <Link
-                                    href="/"
-                                    className="text-sm text-slate-500 hover:text-blue-600"
-                                >
-                                    ← Kembali ke Landing Page
-                                </Link>
+                            <div className="login-field">
+                                <label htmlFor="password">Password</label>
+                                <input
+                                    id="password"
+                                    type="password"
+                                    name="password"
+                                    value={data.password}
+                                    autoComplete="current-password"
+                                    placeholder="••••••••"
+                                    onChange={(e) =>
+                                        setData("password", e.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={errors.password}
+                                    className="login-error"
+                                />
                             </div>
+
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    marginBottom: 8,
+                                }}
+                            >
+                                <label
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 8,
+                                        fontSize: 13,
+                                        color: "rgba(255,255,255,.6)",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={data.remember}
+                                        onChange={(e) =>
+                                            setData(
+                                                "remember",
+                                                e.target.checked,
+                                            )
+                                        }
+                                        style={{ width: 14, height: 14 }}
+                                    />
+                                    Ingat Saya
+                                </label>
+
+                                {canResetPassword && (
+                                    <Link
+                                        href={route("password.request")}
+                                        style={{
+                                            fontSize: 13,
+                                            color: "var(--blue2)",
+                                            textDecoration: "none",
+                                        }}
+                                    >
+                                        Lupa Password?
+                                    </Link>
+                                )}
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="login-btn"
+                            >
+                                {processing
+                                    ? "Memproses..."
+                                    : "Masuk ke Sistem →"}
+                            </button>
+                        </form>
+
+                        <div className="login-back">
+                            <Link href="/">← Kembali ke Landing Page</Link>
                         </div>
                     </div>
                 </div>

@@ -1,18 +1,16 @@
 interface Props {
     text: string;
-    type?: "success" | "warning" | "danger";
+    type?: "success" | "warning" | "danger" | "info" | "neutral";
 }
 
-export default function Badge({ text, type = "success" }: Props) {
-    const color = {
-        success: "bg-green-100 text-green-700",
-        warning: "bg-yellow-100 text-yellow-700",
-        danger: "bg-red-100 text-red-700",
-    };
+const CLASS_MAP: Record<string, string> = {
+    success: "badge-green",
+    warning: "badge-amber",
+    danger: "badge-red",
+    info: "badge-blue",
+    neutral: "badge-gray",
+};
 
-    return (
-        <span className={`px-3 py-1 rounded-full text-sm ${color[type]}`}>
-            {text}
-        </span>
-    );
+export default function Badge({ text, type = "success" }: Props) {
+    return <span className={`badge ${CLASS_MAP[type]}`}>{text}</span>;
 }

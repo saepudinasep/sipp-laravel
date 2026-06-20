@@ -35,13 +35,13 @@ export default function AppLayout({ children, title }: any) {
     const sidebarMenus = menus[role as keyof typeof menus] ?? [];
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="app-shell">
             <Sidebar menus={sidebarMenus} />
 
-            <div className="flex-1 flex flex-col">
+            <div className="main-shell">
                 <Header title={title} user={auth?.user} />
 
-                <main className="p-6">{children}</main>
+                <main className="main-content">{children}</main>
             </div>
         </div>
     );
