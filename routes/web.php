@@ -19,28 +19,73 @@ Route::get('/', function () {
 //     return Inertia::render('Dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
+/*
+|--------------------------------------------------------------------------
+| ADMIN
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
     ->group(function () {
 
-        Route::get('/admin/dashboard', function () {
-            return Inertia::render('Admin/Dashboard');
-        })->name('admin.dashboard');
+        Route::get('/dashboard', fn() => Inertia::render('Admin/Dashboard'))
+            ->name('dashboard');
+
+        Route::get('/siswa', fn() => Inertia::render('Admin/Siswa/Index'))
+            ->name('siswa.index');
+
+        Route::get('/petugas', fn() => Inertia::render('Admin/Petugas/Index'))
+            ->name('petugas.index');
+
+        Route::get('/kelas', fn() => Inertia::render('Admin/Kelas/Index'))
+            ->name('kelas.index');
+
+        Route::get('/spp', fn() => Inertia::render('Admin/SPP/Index'))
+            ->name('spp.index');
+
+        Route::get('/transaksi', fn() => Inertia::render('Admin/Transaksi/Index'))
+            ->name('transaksi.index');
+
+        Route::get('/laporan', fn() => Inertia::render('Admin/Laporan/Index'))
+            ->name('laporan.index');
     });
 
+/*
+|--------------------------------------------------------------------------
+| PETUGAS
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'role:petugas'])
+    ->prefix('petugas')
+    ->name('petugas.')
     ->group(function () {
 
-        Route::get('/petugas/dashboard', function () {
-            return Inertia::render('Petugas/Dashboard');
-        })->name('petugas.dashboard');
+        Route::get('/dashboard', fn() => Inertia::render('Petugas/Dashboard'))
+            ->name('dashboard');
+
+        Route::get('/transaksi', fn() => Inertia::render('Petugas/Transaksi/Index'))
+            ->name('transaksi.index');
+
+        Route::get('/histori', fn() => Inertia::render('Petugas/Histori/Index'))
+            ->name('histori.index');
     });
 
+/*
+|--------------------------------------------------------------------------
+| SISWA
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'role:siswa'])
+    ->prefix('siswa')
+    ->name('siswa.')
     ->group(function () {
 
-        Route::get('/siswa/dashboard', function () {
-            return Inertia::render('Siswa/Dashboard');
-        })->name('siswa.dashboard');
+        Route::get('/dashboard', fn() => Inertia::render('Siswa/Dashboard'))
+            ->name('dashboard');
+
+        Route::get('/histori', fn() => Inertia::render('Siswa/Histori/Index'))
+            ->name('histori.index');
     });
 
 Route::middleware('auth')->group(function () {

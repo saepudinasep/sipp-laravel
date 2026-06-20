@@ -1,0 +1,48 @@
+import { usePage } from "@inertiajs/react";
+import Sidebar from "@/Components/Sidebar";
+import Header from "@/Components/Header";
+
+export default function AppLayout({ children, title }: any) {
+    const page = usePage<any>();
+
+    const auth = page.props.auth;
+
+    const role = auth?.user?.role ?? "";
+
+    const menus = {
+        admin: [
+            { name: "Dashboard", route: "admin.dashboard" },
+            { name: "Data Siswa", route: "admin.siswa.index" },
+            { name: "Data Petugas", route: "admin.petugas.index" },
+            { name: "Data Kelas", route: "admin.kelas.index" },
+            { name: "Data SPP", route: "admin.spp.index" },
+            { name: "Transaksi", route: "admin.transaksi.index" },
+            { name: "Laporan", route: "admin.laporan.index" },
+        ],
+
+        petugas: [
+            { name: "Dashboard", route: "petugas.dashboard" },
+            { name: "Transaksi", route: "petugas.transaksi.index" },
+            { name: "Histori", route: "petugas.histori.index" },
+        ],
+
+        siswa: [
+            { name: "Dashboard", route: "siswa.dashboard" },
+            { name: "Histori", route: "siswa.histori.index" },
+        ],
+    };
+
+    const sidebarMenus = menus[role as keyof typeof menus] ?? [];
+
+    return (
+        <div className="flex min-h-screen bg-gray-100">
+            <Sidebar menus={sidebarMenus} />
+
+            <div className="flex-1 flex flex-col">
+                <Header title={title} user={auth?.user} />
+
+                <main className="p-6">{children}</main>
+            </div>
+        </div>
+    );
+}
