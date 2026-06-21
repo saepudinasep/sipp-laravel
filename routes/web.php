@@ -13,7 +13,7 @@ Route::get('/', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
-});
+})->middleware('guest.redirect')->name('welcome');
 
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');
@@ -32,8 +32,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/dashboard', fn() => Inertia::render('Admin/Dashboard'))
             ->name('dashboard');
 
-        Route::get('/siswa', fn() => Inertia::render('Admin/Siswa/Index'))
-            ->name('siswa.index');
+        Route::resource('siswa', SiswaController::class)
+            ->except(['show']);
 
         Route::get('/petugas', fn() => Inertia::render('Admin/Petugas/Index'))
             ->name('petugas.index');
