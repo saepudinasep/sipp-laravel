@@ -1,6 +1,8 @@
 import { usePage } from "@inertiajs/react";
 import Sidebar from "@/Components/Sidebar";
 import Header from "@/Components/Header";
+import Toast from "@/Components/Toast";
+import PageLoader from "@/Components/PageLoader";
 
 export default function AppLayout({ children, title }: any) {
     const page = usePage<any>();
@@ -16,13 +18,13 @@ export default function AppLayout({ children, title }: any) {
             { name: "Data Petugas", route: "admin.petugas.index" },
             { name: "Data Kelas", route: "admin.kelas.index" },
             { name: "Data SPP", route: "admin.spp.index" },
-            { name: "Transaksi", route: "admin.transaksi.index" },
+            { name: "Entri Pembayaran", route: "admin.transaksi.index" },
             { name: "Laporan", route: "admin.laporan.index" },
         ],
 
         petugas: [
             { name: "Dashboard", route: "petugas.dashboard" },
-            { name: "Transaksi", route: "petugas.transaksi.index" },
+            { name: "Entri Pembayaran", route: "petugas.transaksi.index" },
             { name: "Histori", route: "petugas.histori.index" },
         ],
 
@@ -43,6 +45,9 @@ export default function AppLayout({ children, title }: any) {
 
                 <main className="main-content">{children}</main>
             </div>
+
+            <Toast />
+            <PageLoader />
         </div>
     );
 }

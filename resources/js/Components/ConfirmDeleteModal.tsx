@@ -1,10 +1,18 @@
+import LoadingButton from "@/Components/LoadingButton";
+
 interface Props {
     open: boolean;
     onClose: () => void;
     onDelete: () => void;
+    loading?: boolean;
 }
 
-export default function ConfirmDeleteModal({ open, onClose, onDelete }: Props) {
+export default function ConfirmDeleteModal({
+    open,
+    onClose,
+    onDelete,
+    loading = false,
+}: Props) {
     if (!open) return null;
 
     return (
@@ -25,13 +33,22 @@ export default function ConfirmDeleteModal({ open, onClose, onDelete }: Props) {
                 </div>
 
                 <div className="modal-foot">
-                    <button className="btn btn-outline" onClick={onClose}>
+                    <button
+                        className="btn btn-outline"
+                        onClick={onClose}
+                        disabled={loading}
+                    >
                         Batal
                     </button>
 
-                    <button className="btn btn-danger" onClick={onDelete}>
+                    <LoadingButton
+                        variant="danger"
+                        loading={loading}
+                        loadingText="Menghapus..."
+                        onClick={onDelete}
+                    >
                         Hapus
-                    </button>
+                    </LoadingButton>
                 </div>
             </div>
         </div>

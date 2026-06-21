@@ -1,5 +1,6 @@
 import AppLayout from "@/Layouts/AppLayout";
 import InputError from "@/Components/InputError";
+import LoadingButton from "@/Components/LoadingButton";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { FormEventHandler } from "react";
 
@@ -234,13 +235,13 @@ export default function Create({ kelasList }: Props) {
                     >
                         Batal
                     </Link>
-                    <button
+                    <LoadingButton
                         type="submit"
-                        disabled={processing}
-                        className="btn btn-primary"
+                        loading={processing}
+                        loadingText="Menyimpan..."
                     >
-                        {processing ? "Menyimpan..." : "Simpan Data"}
-                    </button>
+                        Simpan Data
+                    </LoadingButton>
                 </div>
             </form>
         </AppLayout>

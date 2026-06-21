@@ -3,7 +3,7 @@ import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
 import Pagination from "@/Components/Pagination";
 import EmptyState from "@/Components/EmptyState";
 import { Head, Link, router } from "@inertiajs/react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 interface Kelas {
     id: number;
@@ -87,7 +87,8 @@ export default function Index({ siswas, kelasList, filters }: Props) {
     const [search, setSearch] = useState(filters.search ?? "");
     const [kelasId, setKelasId] = useState(filters.kelas_id ?? "");
     const [deleteTarget, setDeleteTarget] = useState<Siswa | null>(null);
-    const isFirstRender = useRef(true);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [searching, setSearching] = useState(false);
 
     const applyFilter = (nextSearch: string, nextKelasId: string) => {
         router.get(
@@ -96,25 +97,26 @@ export default function Index({ siswas, kelasList, filters }: Props) {
                 search: nextSearch || undefined,
                 kelas_id: nextKelasId || undefined,
             },
-            { preserveState: true, replace: true },
+            {
+                preserveState: true,
+                replace: true,
+                onStart: () => setSearching(true),
+                onFinish: () => setSearching(false),
+            },
         );
     };
 
-    // Auto-search: kirim request 400ms setelah pengguna berhenti mengetik,
-    // tanpa perlu menekan Enter atau tombol cari.
-    useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            return;
-        }
+    // Pencarian dipicu manual lewat tombol "Cari" atau tombol Enter,
+    // bukan otomatis saat mengetik — supaya navigasi tetap selaras dengan
+    // indikator loading global (progress bar / PageLoader).
+    const handleSearch = () => {
+        applyFilter(search, kelasId);
+    };
 
-        const timeout = setTimeout(() => {
-            applyFilter(search, kelasId);
-        }, 400);
-
-        return () => clearTimeout(timeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search]);
+    const handleClearSearch = () => {
+        setSearch("");
+        applyFilter("", kelasId);
+    };
 
     const handleKelasChange = (value: string) => {
         setKelasId(value);
@@ -123,8 +125,12 @@ export default function Index({ siswas, kelasList, filters }: Props) {
 
     const confirmDelete = () => {
         if (!deleteTarget) return;
+        setIsDeleting(true);
         router.delete(route("admin.siswa.destroy", deleteTarget.id), {
-            onFinish: () => setDeleteTarget(null),
+            onFinish: () => {
+                setIsDeleting(false);
+                setDeleteTarget(null);
+            },
         });
     };
 
@@ -150,34 +156,63 @@ export default function Index({ siswas, kelasList, filters }: Props) {
                     </div>
 
                     <div className="card-actions">
-                        <div className="search-box">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                            </svg>
-                            <input
-                                type="text"
-                                placeholder="Cari nama / NIS..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
-                            {search && (
-                                <button
-                                    type="button"
-                                    onClick={() => setSearch("")}
-                                    aria-label="Hapus pencarian"
-                                    style={{
-                                        border: "none",
-                                        background: "transparent",
-                                        cursor: "pointer",
-                                        color: "var(--gray3)",
-                                        fontSize: 16,
-                                        lineHeight: 1,
-                                        padding: 0,
+                        <div className="siswa-search-row">
+                            <div className="search-box">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                                </svg>
+                                <input
+                                    type="text"
+                                    placeholder="Cari nama / NIS..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            handleSearch();
+                                        }
                                     }}
-                                >
-                                    ×
-                                </button>
-                            )}
+                                />
+                                {search && (
+                                    <button
+                                        type="button"
+                                        onClick={handleClearSearch}
+                                        aria-label="Hapus pencarian"
+                                        style={{
+                                            border: "none",
+                                            background: "transparent",
+                                            cursor: "pointer",
+                                            color: "var(--gray3)",
+                                            fontSize: 16,
+                                            lineHeight: 1,
+                                            padding: 0,
+                                        }}
+                                    >
+                                        ×
+                                    </button>
+                                )}
+                            </div>
+
+                            <button
+                                type="button"
+                                className="btn-search"
+                                onClick={handleSearch}
+                                disabled={searching}
+                            >
+                                {searching ? (
+                                    <span className="btn-search-spinner" />
+                                ) : (
+                                    <svg
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                    >
+                                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                                    </svg>
+                                )}
+                                Cari
+                            </button>
                         </div>
 
                         <select
@@ -345,6 +380,7 @@ export default function Index({ siswas, kelasList, filters }: Props) {
                 open={deleteTarget !== null}
                 onClose={() => setDeleteTarget(null)}
                 onDelete={confirmDelete}
+                loading={isDeleting}
             />
         </AppLayout>
     );

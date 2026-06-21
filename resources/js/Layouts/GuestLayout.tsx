@@ -18,8 +18,14 @@
 //     );
 // }
 
+import PageLoader from "@/Components/PageLoader";
 import { PropsWithChildren } from "react";
 
 export default function GuestLayout({ children }: PropsWithChildren) {
-    return <>{children}</>;
+    return (
+        <>
+            {children}
+            <PageLoader />
+        </>
+    );
 }

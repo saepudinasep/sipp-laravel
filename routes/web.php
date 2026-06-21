@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
+use App\Http\Controllers\TransaksiController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -44,8 +45,14 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/spp', fn() => Inertia::render('Admin/SPP/Index'))
             ->name('spp.index');
 
-        Route::get('/transaksi', fn() => Inertia::render('Admin/Transaksi/Index'))
+        Route::get('/transaksi', [TransaksiController::class, 'index'])
             ->name('transaksi.index');
+
+        Route::post('/transaksi', [TransaksiController::class, 'store'])
+            ->name('transaksi.store');
+
+        Route::get('/transaksi/cari-siswa', [TransaksiController::class, 'searchSiswa'])
+            ->name('transaksi.cari-siswa');
 
         Route::get('/laporan', fn() => Inertia::render('Admin/Laporan/Index'))
             ->name('laporan.index');
@@ -64,8 +71,14 @@ Route::middleware(['auth', 'role:petugas'])
         Route::get('/dashboard', fn() => Inertia::render('Petugas/Dashboard'))
             ->name('dashboard');
 
-        Route::get('/transaksi', fn() => Inertia::render('Petugas/Transaksi/Index'))
+        Route::get('/transaksi', [TransaksiController::class, 'index'])
             ->name('transaksi.index');
+
+        Route::post('/transaksi', [TransaksiController::class, 'store'])
+            ->name('transaksi.store');
+
+        Route::get('/transaksi/cari-siswa', [TransaksiController::class, 'searchSiswa'])
+            ->name('transaksi.cari-siswa');
 
         Route::get('/histori', fn() => Inertia::render('Petugas/Histori/Index'))
             ->name('histori.index');

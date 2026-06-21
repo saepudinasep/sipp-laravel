@@ -185,7 +185,27 @@ export default function Login({
                                 type="submit"
                                 disabled={processing}
                                 className="login-btn"
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: 8,
+                                }}
                             >
+                                {processing && (
+                                    <span
+                                        style={{
+                                            width: 14,
+                                            height: 14,
+                                            borderRadius: "50%",
+                                            border: "2px solid rgba(255,255,255,.35)",
+                                            borderTopColor: "#fff",
+                                            display: "inline-block",
+                                            animation:
+                                                "btn-spin 0.6s linear infinite",
+                                        }}
+                                    />
+                                )}
                                 {processing
                                     ? "Memproses..."
                                     : "Masuk ke Sistem →"}
