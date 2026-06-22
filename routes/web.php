@@ -45,14 +45,14 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/spp', fn() => Inertia::render('Admin/SPP/Index'))
             ->name('spp.index');
 
-        Route::get('/transaksi', [TransaksiController::class, 'index'])
-            ->name('transaksi.index');
+        // Catatan: Admin TIDAK memiliki halaman Entri Pembayaran.
+        // Tabel `transaksis` mewajibkan `petugas_id` (FK ke tabel `petugas`),
+        // dan Admin tidak punya baris di tabel tersebut — sehingga entri
+        // pembayaran hanya tersedia untuk role Petugas. Admin tetap bisa
+        // memantau semua transaksi lewat Histori Pembayaran di bawah.
 
-        Route::post('/transaksi', [TransaksiController::class, 'store'])
-            ->name('transaksi.store');
-
-        Route::get('/transaksi/cari-siswa', [TransaksiController::class, 'searchSiswa'])
-            ->name('transaksi.cari-siswa');
+        Route::get('/histori', [TransaksiController::class, 'histori'])
+            ->name('histori.index');
 
         Route::get('/laporan', fn() => Inertia::render('Admin/Laporan/Index'))
             ->name('laporan.index');
@@ -80,7 +80,7 @@ Route::middleware(['auth', 'role:petugas'])
         Route::get('/transaksi/cari-siswa', [TransaksiController::class, 'searchSiswa'])
             ->name('transaksi.cari-siswa');
 
-        Route::get('/histori', fn() => Inertia::render('Petugas/Histori/Index'))
+        Route::get('/histori', [TransaksiController::class, 'histori'])
             ->name('histori.index');
     });
 
@@ -97,7 +97,7 @@ Route::middleware(['auth', 'role:siswa'])
         Route::get('/dashboard', fn() => Inertia::render('Siswa/Dashboard'))
             ->name('dashboard');
 
-        Route::get('/histori', fn() => Inertia::render('Siswa/Histori/Index'))
+        Route::get('/histori', [TransaksiController::class, 'histori'])
             ->name('histori.index');
     });
 

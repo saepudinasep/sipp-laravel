@@ -17,6 +17,11 @@ class Transaksi extends Model
         'keterangan',
     ];
 
+    protected $casts = [
+        'tgl_bayar' => 'date',
+        'nominal' => 'decimal:2',
+    ];
+
     public function siswa()
     {
         return $this->belongsTo(Siswa::class);

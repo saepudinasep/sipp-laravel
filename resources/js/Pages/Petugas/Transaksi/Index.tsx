@@ -55,7 +55,6 @@ export default function Index({
             </div>
 
             <TransaksiPembayaranForm
-                routePrefix="petugas"
                 siswaTerpilih={siswaTerpilih}
                 sppBelumLunas={sppBelumLunas}
                 statusBulan={statusBulan}

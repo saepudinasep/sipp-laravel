@@ -7,6 +7,7 @@ use App\Models\Petugas;
 use App\Models\Siswa;
 use App\Models\Spp;
 use App\Models\Transaksi;
+use App\Models\Kelas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -32,10 +33,15 @@ class TransaksiController extends Controller
 
     /**
      * Halaman Entri Pembayaran (form input transaksi).
+     *
+     * Khusus role Petugas. Tabel `transaksis` mewajibkan `petugas_id`
+     * (foreign key ke tabel `petugas`), dan Admin tidak memiliki baris
+     * di tabel tersebut — sehingga secara skema data, entri pembayaran
+     * tidak bisa diwakilkan ke Admin. Admin hanya melihat hasilnya lewat
+     * Histori Pembayaran.
      */
     public function index(Request $request)
     {
-        $role = Auth::user()->role;
         $petugasAktif = Auth::user()->petugas;
 
         $siswaTerpilih = null;
@@ -75,18 +81,115 @@ class TransaksiController extends Controller
             }
         }
 
-        $page = $role === 'admin' ? 'Admin/Transaksi/Index' : 'Petugas/Transaksi/Index';
-
-        $props = [
+        return Inertia::render('Petugas/Transaksi/Index', [
             'siswaTerpilih' => $siswaTerpilih,
             'sppBelumLunas' => $sppBelumLunas,
             'statusBulan' => $statusBulan,
+            'petugasNama' => $petugasAktif->nama ?? Auth::user()->email,
+        ]);
+    }
+
+    /**
+     * Halaman Histori Pembayaran — daftar transaksi yang tercatat, dengan
+     * scope berbeda sesuai role:
+     *  - Admin   : melihat seluruh transaksi semua siswa & petugas.
+     *  - Petugas : default hanya transaksi miliknya sendiri, namun bisa
+     *              memilih petugas lain lewat filter dropdown.
+     *  - Siswa   : hanya transaksi miliknya sendiri, tanpa filter siswa.
+     */
+    public function histori(Request $request)
+    {
+        $user = Auth::user();
+        $role = $user->role;
+
+        $search = $request->input('search');
+        $bulan = $request->input('bulan');
+        $kelasId = $request->input('kelas_id');
+        $petugasIdFilter = $request->input('petugas_id');
+
+        $query = Transaksi::query()->with(['siswa.kelas', 'spp', 'petugas']);
+
+        if ($role === 'siswa') {
+            // Siswa hanya boleh melihat transaksi miliknya sendiri —
+            // tidak ada filter siswa/petugas untuk role ini.
+            $siswaAktif = $user->siswa;
+            $query->where('siswa_id', $siswaAktif->id ?? 0);
+        } elseif ($role === 'petugas') {
+            $petugasAktif = $user->petugas;
+
+            // Default ke transaksi milik petugas yang login. Jika user
+            // memilih petugas lain lewat filter, gunakan pilihan tersebut.
+            $query->where('petugas_id', $petugasIdFilter ?: ($petugasAktif->id ?? 0));
+        } elseif ($petugasIdFilter) {
+            // Admin: filter petugas bersifat opsional (default lihat semua).
+            $query->where('petugas_id', $petugasIdFilter);
+        }
+
+        $transaksis = $query
+            ->when($search && $role !== 'siswa', function ($q) use ($search) {
+                $q->whereHas('siswa', function ($sub) use ($search) {
+                    $sub->where('nama', 'like', "%{$search}%")
+                        ->orWhere('nis', 'like', "%{$search}%");
+                });
+            })
+            ->when($bulan, function ($q) use ($bulan) {
+                $q->whereHas('spp', function ($sub) use ($bulan) {
+                    $sub->where('bulan', $bulan);
+                });
+            })
+            ->when($kelasId && $role !== 'siswa', function ($q) use ($kelasId) {
+                $q->whereHas('siswa', function ($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
+            })
+            ->orderByDesc('tgl_bayar')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        $transaksis->getCollection()->transform(function ($t) {
+            return [
+                'id' => $t->id,
+                'tgl_bayar' => $t->tgl_bayar->format('Y-m-d'),
+                'siswa_nama' => $t->siswa->nama ?? '—',
+                'kelas' => $t->siswa->kelas->nama_kelas ?? null,
+                'spp_jenis' => $t->spp->jenis ?? '—',
+                'spp_bulan_label' => self::NAMA_BULAN[$t->spp->bulan] ?? '',
+                'nominal' => (float) $t->nominal,
+                'petugas_nama' => $t->petugas->nama ?? '—',
+                'keterangan' => $t->keterangan,
+            ];
+        });
+
+        $page = match ($role) {
+            'admin' => 'Admin/Histori/Index',
+            'petugas' => 'Petugas/Histori/Index',
+            default => 'Siswa/Histori/Index',
+        };
+
+        $props = [
+            'transaksis' => $transaksis,
+            'bulanList' => collect(self::NAMA_BULAN)->map(fn($label, $angka) => [
+                'value' => $angka,
+                'label' => $label,
+            ])->values(),
+            'filters' => [
+                'search' => $search,
+                'bulan' => $bulan,
+                'kelas_id' => $kelasId,
+                'petugas_id' => $petugasIdFilter,
+            ],
         ];
 
-        if ($role === 'admin') {
+        // Filter kelas & siswa hanya relevan untuk Admin/Petugas, bukan Siswa
+        // (siswa hanya melihat datanya sendiri, kelasnya sudah pasti).
+        if ($role !== 'siswa') {
+            $props['kelasList'] = Kelas::orderBy('nama_kelas')->get(['id', 'nama_kelas']);
+        }
+
+        // Dropdown filter "lihat punya petugas lain" hanya untuk role petugas.
+        if ($role === 'petugas') {
             $props['petugasList'] = Petugas::orderBy('nama')->get(['id', 'nama']);
-        } else {
-            $props['petugasNama'] = $petugasAktif->nama ?? Auth::user()->email;
         }
 
         return Inertia::render($page, $props);
@@ -131,37 +234,23 @@ class TransaksiController extends Controller
     }
 
     /**
-     * Simpan transaksi pembayaran baru.
-     * Petugas penerima ditentukan dari data petugas milik user yang login
-     * (jika role petugas), atau dari pilihan dropdown (jika role admin).
+     * Simpan transaksi pembayaran baru. Hanya bisa diakses oleh Petugas;
+     * petugas penerima selalu diambil dari data petugas milik user yang
+     * login (bukan dari input/pilihan manapun).
      */
     public function store(Request $request)
     {
-        $role = Auth::user()->role;
-
-        $rules = [
+        $validated = $request->validate([
             'siswa_id' => ['required', 'exists:siswas,id'],
             'spp_id' => ['required', 'exists:spps,id'],
             'tgl_bayar' => ['required', 'date'],
             'keterangan' => ['nullable', 'string', 'max:255'],
-        ];
+        ]);
 
-        if ($role === 'admin') {
-            $rules['petugas_id'] = ['required', 'exists:petugas,id'];
-        }
+        $petugasAktif = Auth::user()->petugas;
 
-        $validated = $request->validate($rules);
-
-        if ($role === 'admin') {
-            $petugasId = $validated['petugas_id'];
-        } else {
-            $petugasAktif = Auth::user()->petugas;
-
-            if (!$petugasAktif) {
-                return back()->with('error', 'Akun Anda tidak terhubung ke data petugas.');
-            }
-
-            $petugasId = $petugasAktif->id;
+        if (!$petugasAktif) {
+            return back()->with('error', 'Akun Anda tidak terhubung ke data petugas.');
         }
 
         $spp = Spp::findOrFail($validated['spp_id']);
@@ -174,11 +263,11 @@ class TransaksiController extends Controller
             return back()->with('error', 'SPP untuk bulan tersebut sudah dibayar sebelumnya.');
         }
 
-        $transaksi = DB::transaction(function () use ($validated, $petugasId, $spp) {
+        $transaksi = DB::transaction(function () use ($validated, $petugasAktif, $spp) {
             $transaksi = Transaksi::create([
                 'siswa_id' => $validated['siswa_id'],
                 'spp_id' => $validated['spp_id'],
-                'petugas_id' => $petugasId,
+                'petugas_id' => $petugasAktif->id,
                 'tgl_bayar' => $validated['tgl_bayar'],
                 'nominal' => $spp->nominal,
                 'keterangan' => $validated['keterangan'] ?? null,
@@ -194,10 +283,8 @@ class TransaksiController extends Controller
             return $transaksi;
         });
 
-        $routeName = $role === 'admin' ? 'admin.transaksi.index' : 'petugas.transaksi.index';
-
         return redirect()
-            ->route($routeName, ['siswa_id' => $transaksi->siswa_id])
+            ->route('petugas.transaksi.index', ['siswa_id' => $transaksi->siswa_id])
             ->with('success', 'Pembayaran berhasil disimpan.');
     }
 

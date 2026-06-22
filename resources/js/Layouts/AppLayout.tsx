@@ -18,19 +18,19 @@ export default function AppLayout({ children, title }: any) {
             { name: "Data Petugas", route: "admin.petugas.index" },
             { name: "Data Kelas", route: "admin.kelas.index" },
             { name: "Data SPP", route: "admin.spp.index" },
-            { name: "Entri Pembayaran", route: "admin.transaksi.index" },
+            { name: "Histori Pembayaran", route: "admin.histori.index" },
             { name: "Laporan", route: "admin.laporan.index" },
         ],
 
         petugas: [
             { name: "Dashboard", route: "petugas.dashboard" },
             { name: "Entri Pembayaran", route: "petugas.transaksi.index" },
-            { name: "Histori", route: "petugas.histori.index" },
+            { name: "Histori Pembayaran", route: "petugas.histori.index" },
         ],
 
         siswa: [
             { name: "Dashboard", route: "siswa.dashboard" },
-            { name: "Histori", route: "siswa.histori.index" },
+            { name: "Histori Pembayaran", route: "siswa.histori.index" },
         ],
     };
 

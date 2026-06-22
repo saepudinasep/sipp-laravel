@@ -30,12 +30,10 @@ interface Props {
     };
     kelasList: { id: number; nama_kelas: string }[];
     bulanList: { value: number; label: string }[];
-    petugasList: { id: number; nama: string }[];
     filters: {
         search: string | null;
         bulan: string | null;
         kelas_id: string | null;
-        petugas_id: string | null;
     };
 }
 
@@ -43,7 +41,6 @@ export default function Index({
     transaksis,
     kelasList,
     bulanList,
-    petugasList,
     filters,
 }: Props) {
     return (
@@ -55,19 +52,14 @@ export default function Index({
             </div>
             <div className="page-header">
                 <h1>Histori Pembayaran</h1>
-                <p>
-                    Riwayat transaksi pembayaran SPP. Defaultnya menampilkan
-                    transaksi Anda sendiri — gunakan filter untuk melihat
-                    petugas lain.
-                </p>
+                <p>Riwayat seluruh transaksi pembayaran SPP.</p>
             </div>
 
             <HistoriTransaksiTable
-                routePrefix="petugas"
+                routePrefix="admin"
                 transaksis={transaksis}
                 kelasList={kelasList}
                 bulanList={bulanList}
-                petugasList={petugasList}
                 filters={filters}
             />
         </AppLayout>

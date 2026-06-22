@@ -33,21 +33,12 @@ interface StatusBulan {
     lunas: boolean;
 }
 
-interface PetugasOption {
-    id: number;
-    nama: string;
-}
-
 interface Props {
-    /** Prefix nama route: "admin" atau "petugas". */
-    routePrefix: "admin" | "petugas";
     siswaTerpilih: SiswaTerpilih | null;
     sppBelumLunas: SppOption[];
     statusBulan: StatusBulan[];
-    /** Hanya untuk role petugas — nama petugas yang sedang login. */
-    petugasNama?: string;
-    /** Hanya untuk role admin — daftar petugas untuk dipilih di form. */
-    petugasList?: PetugasOption[];
+    /** Nama petugas yang sedang login. */
+    petugasNama: string;
 }
 
 function formatRupiah(value: number) {
@@ -68,16 +59,18 @@ function formatTanggalIndo(iso: string) {
     });
 }
 
+/**
+ * Form Entri Pembayaran — khusus role Petugas. Petugas penerima selalu
+ * otomatis dari akun yang login (tidak ada pilihan petugas lain), karena
+ * tabel `transaksis` mewajibkan `petugas_id` yang merepresentasikan siapa
+ * yang benar-benar menerima pembayaran.
+ */
 export default function TransaksiPembayaranForm({
-    routePrefix,
     siswaTerpilih,
     sppBelumLunas,
     statusBulan,
     petugasNama,
-    petugasList,
 }: Props) {
-    const isAdmin = routePrefix === "admin";
-
     const [query, setQuery] = useState(siswaTerpilih?.nama ?? "");
     const [results, setResults] = useState<SiswaRingkas[]>([]);
     const [searching, setSearching] = useState(false);
@@ -90,7 +83,6 @@ export default function TransaksiPembayaranForm({
     const { data, setData, post, processing, errors, reset } = useForm({
         siswa_id: siswaTerpilih?.id ? String(siswaTerpilih.id) : "",
         spp_id: "",
-        petugas_id: "",
         tgl_bayar: todayISO(),
         keterangan: "",
     });
@@ -115,7 +107,7 @@ export default function TransaksiPembayaranForm({
         debounceRef.current = setTimeout(async () => {
             try {
                 const res = await fetch(
-                    route(`${routePrefix}.transaksi.cari-siswa`) +
+                    route("petugas.transaksi.cari-siswa") +
                         "?q=" +
                         encodeURIComponent(query.trim()),
                     { headers: { Accept: "application/json" } },
@@ -131,7 +123,7 @@ export default function TransaksiPembayaranForm({
         return () => {
             if (debounceRef.current) clearTimeout(debounceRef.current);
         };
-    }, [query, routePrefix]);
+    }, [query]);
 
     const pilihSiswa = (siswa: SiswaRingkas) => {
         skipNextSearchRef.current = true;
@@ -141,7 +133,7 @@ export default function TransaksiPembayaranForm({
         setData("siswa_id", String(siswa.id));
         setData("spp_id", "");
         router.get(
-            route(`${routePrefix}.transaksi.index`),
+            route("petugas.transaksi.index"),
             { siswa_id: siswa.id },
             { preserveState: true, replace: true },
         );
@@ -149,14 +141,9 @@ export default function TransaksiPembayaranForm({
 
     const selectedSpp = sppBelumLunas.find((s) => String(s.id) === data.spp_id);
 
-    const selectedPetugasNama = isAdmin
-        ? (petugasList?.find((p) => String(p.id) === data.petugas_id)?.nama ??
-          "—")
-        : (petugasNama ?? "—");
-
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route(`${routePrefix}.transaksi.store`), {
+        post(route("petugas.transaksi.store"), {
             onSuccess: () => {
                 reset("spp_id", "keterangan");
                 setData("tgl_bayar", todayISO());
@@ -169,11 +156,10 @@ export default function TransaksiPembayaranForm({
         setResults([]);
         reset();
         setData("tgl_bayar", todayISO());
-        router.get(route(`${routePrefix}.transaksi.index`));
+        router.get(route("petugas.transaksi.index"));
     };
 
-    const canSubmit =
-        !!data.siswa_id && !!data.spp_id && (!isAdmin || !!data.petugas_id);
+    const canSubmit = !!data.siswa_id && !!data.spp_id;
 
     return (
         <div className="two-col">
@@ -376,38 +362,6 @@ export default function TransaksiPembayaranForm({
                             </div>
                         </div>
 
-                        {isAdmin && (
-                            <div className="form-group">
-                                <label className="form-label">
-                                    Petugas Penerima{" "}
-                                    <span className="req">*</span>
-                                </label>
-                                <select
-                                    className="form-select"
-                                    value={data.petugas_id}
-                                    onChange={(e) =>
-                                        setData("petugas_id", e.target.value)
-                                    }
-                                >
-                                    <option value="">
-                                        -- Pilih Petugas --
-                                    </option>
-                                    {(petugasList ?? []).map((p) => (
-                                        <option key={p.id} value={p.id}>
-                                            {p.nama}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="form-hint">
-                                    Petugas yang mewakili transaksi ini.
-                                </div>
-                                <InputError
-                                    message={errors.petugas_id}
-                                    className="form-error"
-                                />
-                            </div>
-                        )}
-
                         <div className="form-group">
                             <label className="form-label">
                                 Tanggal Bayar <span className="req">*</span>
@@ -507,9 +461,7 @@ export default function TransaksiPembayaranForm({
                             </div>
                             <div className="info-row">
                                 <span className="info-key">Petugas</span>
-                                <span className="info-val">
-                                    {selectedPetugasNama}
-                                </span>
+                                <span className="info-val">{petugasNama}</span>
                             </div>
                             <div
                                 style={{
