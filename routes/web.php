@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\TransaksiController;
@@ -54,8 +55,14 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/histori', [TransaksiController::class, 'histori'])
             ->name('histori.index');
 
-        Route::get('/laporan', fn() => Inertia::render('Admin/Laporan/Index'))
+        Route::get('/laporan', [LaporanController::class, 'index'])
             ->name('laporan.index');
+
+        Route::get('/laporan/export-excel', [LaporanController::class, 'exportExcel'])
+            ->name('laporan.export-excel');
+
+        Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPdf'])
+            ->name('laporan.export-pdf');
     });
 
 /*
