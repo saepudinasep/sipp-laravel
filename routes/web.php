@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
@@ -41,8 +42,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/petugas', fn() => Inertia::render('Admin/Petugas/Index'))
             ->name('petugas.index');
 
-        Route::get('/kelas', fn() => Inertia::render('Admin/Kelas/Index'))
-            ->name('kelas.index');
+        Route::resource('kelas', KelasController::class)
+            ->except(['show', 'create', 'edit']);
 
         Route::get('/spp', fn() => Inertia::render('Admin/SPP/Index'))
             ->name('spp.index');
