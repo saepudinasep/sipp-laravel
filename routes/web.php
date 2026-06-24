@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\TransaksiController;
@@ -39,8 +40,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('siswa', SiswaController::class)
             ->except(['show']);
 
-        Route::get('/petugas', fn() => Inertia::render('Admin/Petugas/Index'))
-            ->name('petugas.index');
+        Route::resource('petugas', PetugasController::class)
+            ->except(['show', 'create', 'edit']);
 
         Route::resource('kelas', KelasController::class)
             ->except(['show', 'create', 'edit']);
