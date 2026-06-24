@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Spp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class SppController extends Controller
@@ -38,6 +39,7 @@ class SppController extends Controller
 
         $spp = Spp::query()
             ->when($tahunAjaran, fn($q) => $q->where('tahun_ajaran', $tahunAjaran))
+            ->orderBy('jenis')
             ->orderBy('bulan')
             ->get()
             ->map(fn($s) => [
@@ -78,28 +80,50 @@ class SppController extends Controller
         $validated = $request->validate([
             'jenis' => ['required', 'string', 'max:50'],
             'nominal' => ['required', 'numeric', 'min:0'],
-            'bulan' => ['required', 'integer', 'between:1,12'],
             'tahun_ajaran' => ['required', 'string', 'max:10'],
         ], [
             'tahun_ajaran.required' => 'Tahun ajaran wajib diisi, contoh: 2026/2027.',
         ]);
 
-        $duplikat = Spp::where('jenis', $validated['jenis'])
-            ->where('bulan', $validated['bulan'])
+        $bulanSudahAda = Spp::where('jenis', $validated['jenis'])
             ->where('tahun_ajaran', $validated['tahun_ajaran'])
-            ->exists();
+            ->pluck('bulan')
+            ->all();
 
-        if ($duplikat) {
+        $bulanBaru = array_diff(range(1, 12), $bulanSudahAda);
+
+        if (empty($bulanBaru)) {
             return back()
-                ->withErrors(['jenis' => 'SPP dengan jenis, bulan, dan tahun ajaran yang sama sudah ada.'])
+                ->withErrors(['jenis' => 'SPP ini untuk seluruh 12 bulan di tahun ajaran tersebut sudah ada.'])
                 ->withInput();
         }
 
-        Spp::create($validated);
+        DB::transaction(function () use ($validated, $bulanBaru) {
+            $now = now();
+
+            $rows = array_map(fn($bulan) => [
+                'jenis' => $validated['jenis'],
+                'nominal' => $validated['nominal'],
+                'bulan' => $bulan,
+                'tahun_ajaran' => $validated['tahun_ajaran'],
+                'created_at' => $now,
+                'updated_at' => $now,
+            ], $bulanBaru);
+
+            Spp::insert($rows);
+        });
+
+        $jumlahDibuat = count($bulanBaru);
+        $jumlahDilewati = count($bulanSudahAda);
+
+        $pesan = "SPP berhasil dibuat untuk {$jumlahDibuat} bulan.";
+        if ($jumlahDilewati > 0) {
+            $pesan .= " {$jumlahDilewati} bulan dilewati karena sudah ada sebelumnya.";
+        }
 
         return redirect()
             ->route('admin.spp.index', ['tahun_ajaran' => $validated['tahun_ajaran']])
-            ->with('success', 'Data SPP berhasil ditambahkan.');
+            ->with('success', $pesan);
     }
 
     /**
@@ -163,5 +187,39 @@ class SppController extends Controller
         return redirect()
             ->route('admin.spp.index', ['tahun_ajaran' => $spp->tahun_ajaran])
             ->with('success', 'Data SPP berhasil dihapus.');
+    }
+
+    /**
+     * Hapus SEMUA bulan untuk satu kombinasi jenis + tahun ajaran sekaligus
+     * — pasangan dari store() yang membuat 12 bulan sekaligus. Baris yang
+     * sudah punya transaksi pembayaran tidak ikut terhapus (dilindungi),
+     * sisanya tetap dihapus.
+     */
+    public function destroyBulk(Request $request)
+    {
+        $validated = $request->validate([
+            'jenis' => ['required', 'string', 'max:50'],
+            'tahun_ajaran' => ['required', 'string', 'max:10'],
+        ]);
+
+        $group = Spp::where('jenis', $validated['jenis'])
+            ->where('tahun_ajaran', $validated['tahun_ajaran'])
+            ->get();
+
+        $terpakai = $group->filter(fn($spp) => $spp->transaksi()->exists());
+        $bisaDihapus = $group->reject(fn($spp) => $terpakai->contains('id', $spp->id));
+
+        foreach ($bisaDihapus as $spp) {
+            $spp->delete();
+        }
+
+        $pesan = "{$bisaDihapus->count()} bulan SPP berhasil dihapus.";
+        if ($terpakai->isNotEmpty()) {
+            $pesan .= " {$terpakai->count()} bulan tidak dapat dihapus karena sudah memiliki transaksi.";
+        }
+
+        return redirect()
+            ->route('admin.spp.index', ['tahun_ajaran' => $validated['tahun_ajaran']])
+            ->with($terpakai->isNotEmpty() ? 'error' : 'success', $pesan);
     }
 }

@@ -50,6 +50,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('spp', SppController::class)
             ->except(['show', 'create', 'edit']);
 
+        Route::delete('/spp-bulk', [SppController::class, 'destroyBulk'])
+            ->name('spp.destroy-bulk');
+
         // Catatan: Admin TIDAK memiliki halaman Entri Pembayaran.
         // Tabel `transaksis` mewajibkan `petugas_id` (FK ke tabel `petugas`),
         // dan Admin tidak punya baris di tabel tersebut — sehingga entri
