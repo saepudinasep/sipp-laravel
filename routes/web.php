@@ -6,6 +6,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
+use App\Http\Controllers\SppController;
 use App\Http\Controllers\TransaksiController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -46,8 +47,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('kelas', KelasController::class)
             ->except(['show', 'create', 'edit']);
 
-        Route::get('/spp', fn() => Inertia::render('Admin/SPP/Index'))
-            ->name('spp.index');
+        Route::resource('spp', SppController::class)
+            ->except(['show', 'create', 'edit']);
 
         // Catatan: Admin TIDAK memiliki halaman Entri Pembayaran.
         // Tabel `transaksis` mewajibkan `petugas_id` (FK ke tabel `petugas`),
