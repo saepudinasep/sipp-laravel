@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
@@ -31,7 +32,7 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
 
-        Route::get('/dashboard', fn() => Inertia::render('Admin/Dashboard'))
+        Route::get('/dashboard', [DashboardController::class, 'admin'])
             ->name('dashboard');
 
         Route::resource('siswa', SiswaController::class)
@@ -75,7 +76,7 @@ Route::middleware(['auth', 'role:petugas'])
     ->name('petugas.')
     ->group(function () {
 
-        Route::get('/dashboard', fn() => Inertia::render('Petugas/Dashboard'))
+        Route::get('/dashboard', [DashboardController::class, 'petugas'])
             ->name('dashboard');
 
         Route::get('/transaksi', [TransaksiController::class, 'index'])
@@ -101,7 +102,7 @@ Route::middleware(['auth', 'role:siswa'])
     ->name('siswa.')
     ->group(function () {
 
-        Route::get('/dashboard', fn() => Inertia::render('Siswa/Dashboard'))
+        Route::get('/dashboard', [DashboardController::class, 'siswa'])
             ->name('dashboard');
 
         Route::get('/histori', [TransaksiController::class, 'histori'])
