@@ -1,10 +1,9 @@
 import AppLayout from "@/Layouts/AppLayout";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
 import EmptyState from "@/Components/EmptyState";
-import InputError from "@/Components/InputError";
 import LoadingButton from "@/Components/LoadingButton";
-import { Head, router, useForm } from "@inertiajs/react";
-import { FormEventHandler, useMemo, useState } from "react";
+import { Head, Link, router } from "@inertiajs/react";
+import { useMemo, useState } from "react";
 
 interface SppItem {
     id: number;
@@ -15,15 +14,9 @@ interface SppItem {
     tahun_ajaran: string;
 }
 
-interface BulanOption {
-    value: number;
-    label: string;
-}
-
 interface Props {
     sppList: SppItem[];
     tahunAjaranList: string[];
-    bulanList: BulanOption[];
     filters: {
         tahun_ajaran: string | null;
     };
@@ -39,32 +32,10 @@ function formatRupiah(value: number) {
     return "Rp " + value.toLocaleString("id-ID");
 }
 
-export default function Index({
-    sppList,
-    tahunAjaranList,
-    bulanList,
-    filters,
-}: Props) {
+export default function Index({ sppList, tahunAjaranList, filters }: Props) {
     const [tahunAjaran, setTahunAjaran] = useState(
         filters.tahun_ajaran ?? tahunAjaranList[0] ?? "",
     );
-
-    // Modal "Tambah SPP" — sekali submit otomatis generate 12 bulan.
-    const [createModalOpen, setCreateModalOpen] = useState(false);
-    const createForm = useForm({
-        jenis: "",
-        nominal: "",
-        tahun_ajaran: tahunAjaran,
-    });
-
-    // Modal "Edit" — tetap per-bulan, untuk penyesuaian satu bulan saja.
-    const [editTarget, setEditTarget] = useState<SppItem | null>(null);
-    const editForm = useForm({
-        jenis: "",
-        nominal: "",
-        bulan: "",
-        tahun_ajaran: "",
-    });
 
     // Hapus satu bulan saja.
     const [deleteTarget, setDeleteTarget] = useState<SppItem | null>(null);
@@ -97,55 +68,6 @@ export default function Index({
             { tahun_ajaran: value || undefined },
             { preserveState: true, replace: true },
         );
-    };
-
-    const openCreateModal = () => {
-        createForm.reset();
-        createForm.clearErrors();
-        createForm.setData({
-            jenis: "",
-            nominal: "",
-            tahun_ajaran: tahunAjaran,
-        });
-        setCreateModalOpen(true);
-    };
-
-    const closeCreateModal = () => {
-        setCreateModalOpen(false);
-        createForm.reset();
-        createForm.clearErrors();
-    };
-
-    const submitCreate: FormEventHandler = (e) => {
-        e.preventDefault();
-        createForm.post(route("admin.spp.store"), {
-            onSuccess: closeCreateModal,
-        });
-    };
-
-    const openEditModal = (spp: SppItem) => {
-        editForm.clearErrors();
-        editForm.setData({
-            jenis: spp.jenis,
-            nominal: String(spp.nominal),
-            bulan: String(spp.bulan),
-            tahun_ajaran: spp.tahun_ajaran,
-        });
-        setEditTarget(spp);
-    };
-
-    const closeEditModal = () => {
-        setEditTarget(null);
-        editForm.reset();
-        editForm.clearErrors();
-    };
-
-    const submitEdit: FormEventHandler = (e) => {
-        e.preventDefault();
-        if (!editTarget) return;
-        editForm.put(route("admin.spp.update", editTarget.id), {
-            onSuccess: closeEditModal,
-        });
     };
 
     const confirmDelete = () => {
@@ -212,10 +134,9 @@ export default function Index({
                     ))}
                 </select>
 
-                <button
-                    type="button"
+                <Link
+                    href={route("admin.spp.create")}
                     className="btn btn-primary"
-                    onClick={openCreateModal}
                 >
                     <svg
                         width="14"
@@ -226,7 +147,7 @@ export default function Index({
                         <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                     </svg>
                     Tambah SPP (12 Bulan)
-                </button>
+                </Link>
             </div>
 
             {groups.length === 0 ? (
@@ -293,17 +214,18 @@ export default function Index({
                                             </td>
                                             <td>
                                                 <div className="td-actions">
-                                                    <button
+                                                    <Link
+                                                        href={route(
+                                                            "admin.spp.edit",
+                                                            spp.id,
+                                                        )}
                                                         className="btn-icon"
                                                         title="Edit"
-                                                        onClick={() =>
-                                                            openEditModal(spp)
-                                                        }
                                                     >
                                                         <svg viewBox="0 0 24 24">
                                                             <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                                                         </svg>
-                                                    </button>
+                                                    </Link>
                                                     <button
                                                         className="btn-icon danger"
                                                         title="Hapus bulan ini"
@@ -324,279 +246,6 @@ export default function Index({
                         </div>
                     </div>
                 ))
-            )}
-
-            {/* Modal Tambah SPP — generate 12 bulan sekaligus */}
-            {createModalOpen && (
-                <div className="modal-overlay open">
-                    <div className="modal">
-                        <form onSubmit={submitCreate}>
-                            <div className="modal-head">
-                                <h3>Tambah Data SPP</h3>
-                                <button
-                                    type="button"
-                                    className="modal-close"
-                                    onClick={closeCreateModal}
-                                >
-                                    ✕
-                                </button>
-                            </div>
-
-                            <div className="modal-body">
-                                <div className="info-panel">
-                                    <p
-                                        style={{
-                                            fontSize: 12,
-                                            color: "var(--gray4)",
-                                            lineHeight: 1.6,
-                                            margin: 0,
-                                        }}
-                                    >
-                                        SPP akan otomatis dibuat untuk{" "}
-                                        <strong>
-                                            12 bulan (Januari–Desember)
-                                        </strong>{" "}
-                                        dengan nominal yang sama. Bulan yang
-                                        sudah ada sebelumnya akan dilewati.
-                                    </p>
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        Jenis SPP <span className="req">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        placeholder="Contoh: SPP Reguler"
-                                        value={createForm.data.jenis}
-                                        onChange={(e) =>
-                                            createForm.setData(
-                                                "jenis",
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={createForm.errors.jenis}
-                                        className="form-error"
-                                    />
-                                </div>
-
-                                <div className="form-grid-2">
-                                    <div className="form-group">
-                                        <label className="form-label">
-                                            Tahun Ajaran{" "}
-                                            <span className="req">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            placeholder="2026/2027"
-                                            value={createForm.data.tahun_ajaran}
-                                            onChange={(e) =>
-                                                createForm.setData(
-                                                    "tahun_ajaran",
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        <InputError
-                                            message={
-                                                createForm.errors.tahun_ajaran
-                                            }
-                                            className="form-error"
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label className="form-label">
-                                            Nominal / Bulan{" "}
-                                            <span className="req">*</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="1000"
-                                            className="form-input"
-                                            placeholder="150000"
-                                            value={createForm.data.nominal}
-                                            onChange={(e) =>
-                                                createForm.setData(
-                                                    "nominal",
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        <InputError
-                                            message={createForm.errors.nominal}
-                                            className="form-error"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="modal-foot">
-                                <button
-                                    type="button"
-                                    className="btn btn-outline"
-                                    onClick={closeCreateModal}
-                                >
-                                    Batal
-                                </button>
-                                <LoadingButton
-                                    type="submit"
-                                    loading={createForm.processing}
-                                    loadingText="Membuat 12 bulan..."
-                                >
-                                    Buat untuk 12 Bulan
-                                </LoadingButton>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Modal Edit — satu bulan saja */}
-            {editTarget && (
-                <div className="modal-overlay open">
-                    <div className="modal">
-                        <form onSubmit={submitEdit}>
-                            <div className="modal-head">
-                                <h3>Edit SPP — {editTarget.bulan_label}</h3>
-                                <button
-                                    type="button"
-                                    className="modal-close"
-                                    onClick={closeEditModal}
-                                >
-                                    ✕
-                                </button>
-                            </div>
-
-                            <div className="modal-body">
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        Jenis SPP <span className="req">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        value={editForm.data.jenis}
-                                        onChange={(e) =>
-                                            editForm.setData(
-                                                "jenis",
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={editForm.errors.jenis}
-                                        className="form-error"
-                                    />
-                                </div>
-
-                                <div className="form-grid-2">
-                                    <div className="form-group">
-                                        <label className="form-label">
-                                            Bulan <span className="req">*</span>
-                                        </label>
-                                        <select
-                                            className="form-select"
-                                            value={editForm.data.bulan}
-                                            onChange={(e) =>
-                                                editForm.setData(
-                                                    "bulan",
-                                                    e.target.value,
-                                                )
-                                            }
-                                        >
-                                            {bulanList.map((b) => (
-                                                <option
-                                                    key={b.value}
-                                                    value={b.value}
-                                                >
-                                                    {b.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <InputError
-                                            message={editForm.errors.bulan}
-                                            className="form-error"
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label className="form-label">
-                                            Tahun Ajaran{" "}
-                                            <span className="req">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            value={editForm.data.tahun_ajaran}
-                                            onChange={(e) =>
-                                                editForm.setData(
-                                                    "tahun_ajaran",
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        <InputError
-                                            message={
-                                                editForm.errors.tahun_ajaran
-                                            }
-                                            className="form-error"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        Nominal <span className="req">*</span>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="1000"
-                                        className="form-input"
-                                        value={editForm.data.nominal}
-                                        onChange={(e) =>
-                                            editForm.setData(
-                                                "nominal",
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                    <div className="form-hint">
-                                        Hanya mengubah nominal bulan ini, bulan
-                                        lain tidak terpengaruh.
-                                    </div>
-                                    <InputError
-                                        message={editForm.errors.nominal}
-                                        className="form-error"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="modal-foot">
-                                <button
-                                    type="button"
-                                    className="btn btn-outline"
-                                    onClick={closeEditModal}
-                                >
-                                    Batal
-                                </button>
-                                <LoadingButton
-                                    type="submit"
-                                    loading={editForm.processing}
-                                    loadingText="Menyimpan..."
-                                >
-                                    Simpan Perubahan
-                                </LoadingButton>
-                            </div>
-                        </form>
-                    </div>
-                </div>
             )}
 
             <ConfirmDeleteModal

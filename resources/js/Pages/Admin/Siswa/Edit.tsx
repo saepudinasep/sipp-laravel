@@ -37,6 +37,8 @@ export default function Edit({ siswa, kelasList }: Props) {
         password: "",
     });
 
+    // console.log(siswa);
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         put(route("admin.siswa.update", siswa.id));

@@ -44,7 +44,7 @@ class PetugasController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Admin/Petugas/Create');
     }
 
     /**
@@ -94,7 +94,13 @@ class PetugasController extends Controller
      */
     public function edit(Petugas $petugas)
     {
-        //
+        $petugas->load('user');
+
+        // dd($petugas->toArray()); // baris sementara untuk debug
+
+        return Inertia::render('Admin/Petugas/Edit', [
+            'petugas' => $petugas,
+        ]);
     }
 
     /**

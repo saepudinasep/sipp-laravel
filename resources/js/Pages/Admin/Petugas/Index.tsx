@@ -1,10 +1,8 @@
 import AppLayout from "@/Layouts/AppLayout";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
 import EmptyState from "@/Components/EmptyState";
-import InputError from "@/Components/InputError";
-import LoadingButton from "@/Components/LoadingButton";
-import { Head, router, useForm } from "@inertiajs/react";
-import { FormEventHandler, useState } from "react";
+import { Head, Link, router } from "@inertiajs/react";
+import { useState } from "react";
 
 interface User {
     id: number;
@@ -66,19 +64,8 @@ function jabatanBadgeClass(jabatan: string) {
 export default function Index({ petugasList, filters }: Props) {
     const [search, setSearch] = useState(filters.search ?? "");
     const [searching, setSearching] = useState(false);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [editTarget, setEditTarget] = useState<Petugas | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Petugas | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-
-    const { data, setData, post, put, processing, errors, reset, clearErrors } =
-        useForm({
-            nama: "",
-            nip: "",
-            jabatan: "",
-            email: "",
-            password: "",
-        });
 
     const handleSearch = () => {
         router.get(
@@ -100,47 +87,6 @@ export default function Index({ petugasList, filters }: Props) {
             {},
             { preserveState: true, replace: true },
         );
-    };
-
-    const openCreateModal = () => {
-        reset();
-        clearErrors();
-        setEditTarget(null);
-        setModalOpen(true);
-    };
-
-    const openEditModal = (petugas: Petugas) => {
-        clearErrors();
-        setData({
-            nama: petugas.nama,
-            nip: petugas.nip,
-            jabatan: petugas.jabatan,
-            email: petugas.user?.email ?? "",
-            password: "",
-        });
-        setEditTarget(petugas);
-        setModalOpen(true);
-    };
-
-    const closeModal = () => {
-        setModalOpen(false);
-        setEditTarget(null);
-        reset();
-        clearErrors();
-    };
-
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
-
-        if (editTarget) {
-            put(route("admin.petugas.update", editTarget.id), {
-                onSuccess: closeModal,
-            });
-        } else {
-            post(route("admin.petugas.store"), {
-                onSuccess: closeModal,
-            });
-        }
     };
 
     const confirmDelete = () => {
@@ -235,10 +181,9 @@ export default function Index({ petugasList, filters }: Props) {
                             </button>
                         </div>
 
-                        <button
-                            type="button"
+                        <Link
+                            href={route("admin.petugas.create")}
                             className="btn btn-primary"
-                            onClick={openCreateModal}
                         >
                             <svg
                                 width="14"
@@ -249,7 +194,7 @@ export default function Index({ petugasList, filters }: Props) {
                                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                             </svg>
                             Tambah Petugas
-                        </button>
+                        </Link>
                     </div>
                 </div>
 
@@ -268,6 +213,7 @@ export default function Index({ petugasList, filters }: Props) {
                                     <th>NIP</th>
                                     <th>Jabatan</th>
                                     <th>Username</th>
+                                    <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -314,18 +260,32 @@ export default function Index({ petugasList, filters }: Props) {
                                             {petugas.user?.email ?? "—"}
                                         </td>
                                         <td>
+                                            {petugas.user?.is_active ? (
+                                                <span className="badge badge-green">
+                                                    <span className="badge-dot" />
+                                                    Aktif
+                                                </span>
+                                            ) : (
+                                                <span className="badge badge-gray">
+                                                    <span className="badge-dot" />
+                                                    Nonaktif
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td>
                                             <div className="td-actions">
-                                                <button
+                                                <Link
+                                                    href={route(
+                                                        "admin.petugas.edit",
+                                                        petugas.id,
+                                                    )}
                                                     className="btn-icon"
                                                     title="Edit"
-                                                    onClick={() =>
-                                                        openEditModal(petugas)
-                                                    }
                                                 >
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                                                     </svg>
-                                                </button>
+                                                </Link>
                                                 <button
                                                     className="btn-icon danger"
                                                     title="Hapus"
@@ -346,168 +306,6 @@ export default function Index({ petugasList, filters }: Props) {
                     </div>
                 )}
             </div>
-
-            {modalOpen && (
-                <div className="modal-overlay open">
-                    <div className="modal">
-                        <form onSubmit={submit}>
-                            <div className="modal-head">
-                                <h3>
-                                    {editTarget
-                                        ? "Edit Petugas"
-                                        : "Tambah Petugas Baru"}
-                                </h3>
-                                <button
-                                    type="button"
-                                    className="modal-close"
-                                    onClick={closeModal}
-                                >
-                                    ✕
-                                </button>
-                            </div>
-
-                            <div className="modal-body">
-                                <div className="form-grid-2">
-                                    <div className="form-group">
-                                        <label className="form-label">
-                                            Nama Lengkap{" "}
-                                            <span className="req">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            placeholder="Contoh: Ibu Wati"
-                                            value={data.nama}
-                                            onChange={(e) =>
-                                                setData("nama", e.target.value)
-                                            }
-                                        />
-                                        <InputError
-                                            message={errors.nama}
-                                            className="form-error"
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label className="form-label">
-                                            NIP <span className="req">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            placeholder="19800101200001001"
-                                            value={data.nip}
-                                            onChange={(e) =>
-                                                setData("nip", e.target.value)
-                                            }
-                                        />
-                                        <InputError
-                                            message={errors.nip}
-                                            className="form-error"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        Jabatan <span className="req">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        placeholder="Contoh: Staff Keuangan"
-                                        value={data.jabatan}
-                                        onChange={(e) =>
-                                            setData("jabatan", e.target.value)
-                                        }
-                                    />
-                                    <InputError
-                                        message={errors.jabatan}
-                                        className="form-error"
-                                    />
-                                </div>
-
-                                <div
-                                    style={{
-                                        borderTop: "1px solid var(--gray1)",
-                                        margin: "18px 0 14px",
-                                        paddingTop: 14,
-                                        fontSize: 12,
-                                        fontWeight: 700,
-                                        color: "var(--gray4)",
-                                    }}
-                                >
-                                    AKUN LOGIN
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        Email <span className="req">*</span>
-                                    </label>
-                                    <input
-                                        type="email"
-                                        className="form-input"
-                                        placeholder="nama@sekolah.id"
-                                        value={data.email}
-                                        onChange={(e) =>
-                                            setData("email", e.target.value)
-                                        }
-                                    />
-                                    <InputError
-                                        message={errors.email}
-                                        className="form-error"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        Password{" "}
-                                        {!editTarget && (
-                                            <span className="req">*</span>
-                                        )}
-                                    </label>
-                                    <input
-                                        type="password"
-                                        className="form-input"
-                                        placeholder={
-                                            editTarget
-                                                ? "Kosongkan jika tidak diubah"
-                                                : "Minimal 6 karakter"
-                                        }
-                                        value={data.password}
-                                        onChange={(e) =>
-                                            setData("password", e.target.value)
-                                        }
-                                    />
-                                    <InputError
-                                        message={errors.password}
-                                        className="form-error"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="modal-foot">
-                                <button
-                                    type="button"
-                                    className="btn btn-outline"
-                                    onClick={closeModal}
-                                >
-                                    Batal
-                                </button>
-                                <LoadingButton
-                                    type="submit"
-                                    loading={processing}
-                                    loadingText="Menyimpan..."
-                                >
-                                    {editTarget
-                                        ? "Simpan Perubahan"
-                                        : "Simpan Petugas"}
-                                </LoadingButton>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
 
             <ConfirmDeleteModal
                 open={deleteTarget !== null}

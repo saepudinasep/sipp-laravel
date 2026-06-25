@@ -69,7 +69,14 @@ class SppController extends Controller
      */
     public function create()
     {
-        //
+        $tahunAjaranList = Spp::select('tahun_ajaran')
+            ->distinct()
+            ->orderByDesc('tahun_ajaran')
+            ->pluck('tahun_ajaran');
+
+        return Inertia::render('Admin/Spp/Create', [
+            'tahunAjaranList' => $tahunAjaranList,
+        ]);
     }
 
     /**
@@ -139,7 +146,19 @@ class SppController extends Controller
      */
     public function edit(Spp $spp)
     {
-        //
+        return Inertia::render('Admin/Spp/Edit', [
+            'spp' => [
+                'id' => $spp->id,
+                'jenis' => $spp->jenis,
+                'nominal' => (float) $spp->nominal,
+                'bulan' => $spp->bulan,
+                'tahun_ajaran' => $spp->tahun_ajaran,
+            ],
+            'bulanList' => collect(self::NAMA_BULAN)->map(fn($label, $angka) => [
+                'value' => $angka,
+                'label' => $label,
+            ])->values(),
+        ]);
     }
 
     /**

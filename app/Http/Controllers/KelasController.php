@@ -40,7 +40,7 @@ class KelasController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Admin/Kelas/Create');
     }
 
     /**
@@ -74,7 +74,9 @@ class KelasController extends Controller
      */
     public function edit(Kelas $kelas)
     {
-        //
+        return Inertia::render('Admin/Kelas/Edit', [
+            'kelas' => $kelas,
+        ]);
     }
 
     /**

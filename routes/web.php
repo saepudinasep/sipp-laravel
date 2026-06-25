@@ -42,13 +42,15 @@ Route::middleware(['auth', 'role:admin'])
             ->except(['show']);
 
         Route::resource('petugas', PetugasController::class)
-            ->except(['show', 'create', 'edit']);
+            ->parameters(['petugas' => 'petugas'])
+            ->except(['show']);
 
         Route::resource('kelas', KelasController::class)
-            ->except(['show', 'create', 'edit']);
+            ->parameters(['kelas' => 'kelas'])
+            ->except(['show']);
 
         Route::resource('spp', SppController::class)
-            ->except(['show', 'create', 'edit']);
+            ->except(['show']);
 
         Route::delete('/spp-bulk', [SppController::class, 'destroyBulk'])
             ->name('spp.destroy-bulk');

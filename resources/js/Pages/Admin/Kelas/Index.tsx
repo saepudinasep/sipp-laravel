@@ -1,10 +1,8 @@
 import AppLayout from "@/Layouts/AppLayout";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
 import EmptyState from "@/Components/EmptyState";
-import InputError from "@/Components/InputError";
-import LoadingButton from "@/Components/LoadingButton";
-import { Head, router, useForm } from "@inertiajs/react";
-import { FormEventHandler, useState } from "react";
+import { Head, Link, router } from "@inertiajs/react";
+import { useState } from "react";
 
 interface Kelas {
     id: number;
@@ -30,17 +28,8 @@ const TINGKAT_BADGE: Record<string, string> = {
 export default function Index({ kelasList, filters }: Props) {
     const [search, setSearch] = useState(filters.search ?? "");
     const [searching, setSearching] = useState(false);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [editTarget, setEditTarget] = useState<Kelas | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Kelas | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-
-    const { data, setData, post, put, processing, errors, reset, clearErrors } =
-        useForm({
-            nama_kelas: "",
-            tingkat: "",
-            jurusan: "",
-        });
 
     const handleSearch = () => {
         router.get(
@@ -62,45 +51,6 @@ export default function Index({ kelasList, filters }: Props) {
             {},
             { preserveState: true, replace: true },
         );
-    };
-
-    const openCreateModal = () => {
-        reset();
-        clearErrors();
-        setEditTarget(null);
-        setModalOpen(true);
-    };
-
-    const openEditModal = (kelas: Kelas) => {
-        clearErrors();
-        setData({
-            nama_kelas: kelas.nama_kelas,
-            tingkat: kelas.tingkat,
-            jurusan: kelas.jurusan,
-        });
-        setEditTarget(kelas);
-        setModalOpen(true);
-    };
-
-    const closeModal = () => {
-        setModalOpen(false);
-        setEditTarget(null);
-        reset();
-        clearErrors();
-    };
-
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
-
-        if (editTarget) {
-            put(route("admin.kelas.update", editTarget.id), {
-                onSuccess: closeModal,
-            });
-        } else {
-            post(route("admin.kelas.store"), {
-                onSuccess: closeModal,
-            });
-        }
     };
 
     const confirmDelete = () => {
@@ -195,10 +145,9 @@ export default function Index({ kelasList, filters }: Props) {
                             </button>
                         </div>
 
-                        <button
-                            type="button"
+                        <Link
+                            href={route("admin.kelas.create")}
                             className="btn btn-primary"
-                            onClick={openCreateModal}
                         >
                             <svg
                                 width="14"
@@ -209,7 +158,7 @@ export default function Index({ kelasList, filters }: Props) {
                                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                             </svg>
                             Tambah Kelas
-                        </button>
+                        </Link>
                     </div>
                 </div>
 
@@ -249,17 +198,18 @@ export default function Index({ kelasList, filters }: Props) {
                                         <td>{kelas.siswa_count} siswa</td>
                                         <td>
                                             <div className="td-actions">
-                                                <button
+                                                <Link
+                                                    href={route(
+                                                        "admin.kelas.edit",
+                                                        kelas.id,
+                                                    )}
                                                     className="btn-icon"
                                                     title="Edit"
-                                                    onClick={() =>
-                                                        openEditModal(kelas)
-                                                    }
                                                 >
                                                     <svg viewBox="0 0 24 24">
                                                         <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                                                     </svg>
-                                                </button>
+                                                </Link>
                                                 <button
                                                     className="btn-icon danger"
                                                     title="Hapus"
@@ -280,116 +230,6 @@ export default function Index({ kelasList, filters }: Props) {
                     </div>
                 )}
             </div>
-
-            {modalOpen && (
-                <div className="modal-overlay open">
-                    <div className="modal">
-                        <form onSubmit={submit}>
-                            <div className="modal-head">
-                                <h3>
-                                    {editTarget
-                                        ? "Edit Kelas"
-                                        : "Tambah Kelas Baru"}
-                                </h3>
-                                <button
-                                    type="button"
-                                    className="modal-close"
-                                    onClick={closeModal}
-                                >
-                                    ✕
-                                </button>
-                            </div>
-
-                            <div className="modal-body">
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        Nama Kelas{" "}
-                                        <span className="req">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        placeholder="Contoh: X RPL 1"
-                                        value={data.nama_kelas}
-                                        onChange={(e) =>
-                                            setData(
-                                                "nama_kelas",
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                    <InputError
-                                        message={errors.nama_kelas}
-                                        className="form-error"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        Tingkat <span className="req">*</span>
-                                    </label>
-                                    <select
-                                        className="form-select"
-                                        value={data.tingkat}
-                                        onChange={(e) =>
-                                            setData("tingkat", e.target.value)
-                                        }
-                                    >
-                                        <option value="">
-                                            Pilih tingkat...
-                                        </option>
-                                        <option value="X">X</option>
-                                        <option value="XI">XI</option>
-                                        <option value="XII">XII</option>
-                                    </select>
-                                    <InputError
-                                        message={errors.tingkat}
-                                        className="form-error"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        Jurusan <span className="req">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        placeholder="Contoh: Rekayasa Perangkat Lunak"
-                                        value={data.jurusan}
-                                        onChange={(e) =>
-                                            setData("jurusan", e.target.value)
-                                        }
-                                    />
-                                    <InputError
-                                        message={errors.jurusan}
-                                        className="form-error"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="modal-foot">
-                                <button
-                                    type="button"
-                                    className="btn btn-outline"
-                                    onClick={closeModal}
-                                >
-                                    Batal
-                                </button>
-                                <LoadingButton
-                                    type="submit"
-                                    loading={processing}
-                                    loadingText="Menyimpan..."
-                                >
-                                    {editTarget
-                                        ? "Simpan Perubahan"
-                                        : "Simpan Kelas"}
-                                </LoadingButton>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
 
             <ConfirmDeleteModal
                 open={deleteTarget !== null}
