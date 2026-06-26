@@ -49,6 +49,15 @@ Route::middleware(['auth', 'role:admin'])
             ->parameters(['kelas' => 'kelas'])
             ->except(['show']);
 
+        Route::get('/kelas-export', [KelasController::class, 'export'])
+            ->name('kelas.export');
+
+        Route::get('/kelas-template', [KelasController::class, 'downloadTemplate'])
+            ->name('kelas.template');
+
+        Route::post('/kelas-import', [KelasController::class, 'import'])
+            ->name('kelas.import');
+
         Route::resource('spp', SppController::class)
             ->except(['show']);
 

@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\KelasExport;
+use App\Exports\KelasTemplateExport;
+use App\Imports\KelasImport;
 use App\Models\Kelas;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Excel;
 
 class KelasController extends Controller
 {
+    public function __construct(protected Excel $excel) {}
     /**
      * Display a listing of the resource.
      */
@@ -111,5 +116,58 @@ class KelasController extends Controller
         return redirect()
             ->route('admin.kelas.index')
             ->with('success', 'Data kelas berhasil dihapus.');
+    }
+
+    /**
+     * Export seluruh data kelas saat ini ke file Excel (.xlsx).
+     */
+    public function export()
+    {
+        return $this->excel->download(new KelasExport(), 'data-kelas.xlsx');
+    }
+
+    /**
+     * Download template Excel kosong untuk diisi lalu di-import kembali.
+     */
+    public function downloadTemplate()
+    {
+        return $this->excel->download(new KelasTemplateExport(), 'template-import-kelas.xlsx');
+    }
+
+    /**
+     * Import data kelas dari file Excel (.xlsx/.csv) hasil isian template.
+     * Baris yang gagal validasi dilaporkan ke user tanpa menggagalkan
+     * baris lain yang valid.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:5120'],
+        ], [
+            'file.required' => 'Pilih file Excel terlebih dahulu.',
+            'file.mimes' => 'File harus berformat .xlsx, .xls, atau .csv.',
+            'file.max' => 'Ukuran file maksimal 5MB.',
+        ]);
+
+        $import = new KelasImport();
+        $this->excel->import($import, $request->file('file'));
+
+        if (empty($import->gagal)) {
+            return redirect()
+                ->route('admin.kelas.index')
+                ->with('success', "{$import->berhasil} kelas berhasil diimpor.");
+        }
+
+        $pesanGagal = collect($import->gagal)
+            ->map(fn($g) => "Baris {$g['baris']}: {$g['pesan']}")
+            ->implode(' | ');
+
+        return redirect()
+            ->route('admin.kelas.index')
+            ->with(
+                $import->berhasil > 0 ? 'success' : 'error',
+                "{$import->berhasil} kelas berhasil diimpor. " .
+                    count($import->gagal) . " baris gagal — {$pesanGagal}",
+            );
     }
 }

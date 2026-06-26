@@ -1,8 +1,9 @@
 import AppLayout from "@/Layouts/AppLayout";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
 import EmptyState from "@/Components/EmptyState";
-import { Head, Link, router } from "@inertiajs/react";
-import { useState } from "react";
+import LoadingButton from "@/Components/LoadingButton";
+import { Head, Link, router, useForm } from "@inertiajs/react";
+import { FormEventHandler, useRef, useState } from "react";
 
 interface Kelas {
     id: number;
@@ -30,6 +31,10 @@ export default function Index({ kelasList, filters }: Props) {
     const [searching, setSearching] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<Kelas | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const importForm = useForm<{ file: File | null }>({ file: null });
 
     const handleSearch = () => {
         router.get(
@@ -61,6 +66,29 @@ export default function Index({ kelasList, filters }: Props) {
                 setIsDeleting(false);
                 setDeleteTarget(null);
             },
+        });
+    };
+
+    const openImportModal = () => {
+        importForm.reset();
+        importForm.clearErrors();
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setImportModalOpen(true);
+    };
+
+    const closeImportModal = () => {
+        setImportModalOpen(false);
+        importForm.reset();
+        importForm.clearErrors();
+    };
+
+    const submitImport: FormEventHandler = (e) => {
+        e.preventDefault();
+        if (!importForm.data.file) return;
+
+        importForm.post(route("admin.kelas.import"), {
+            forceFormData: true,
+            onSuccess: closeImportModal,
         });
     };
 
@@ -144,6 +172,39 @@ export default function Index({ kelasList, filters }: Props) {
                                 Cari
                             </button>
                         </div>
+
+                        <a
+                            href={route("admin.kelas.export")}
+                            className="btn btn-outline"
+                            title="Export data kelas ke Excel"
+                        >
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                            >
+                                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2v16c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1.17 13.13L11 13.41l-1.83 1.72L8 13.95l1.83-1.72L8 10.5l1.17-1.18L11 11.05l1.83-1.73L14 10.5l-1.83 1.19L14 13.95l-1.17 1.18z" />
+                            </svg>
+                            Export Excel
+                        </a>
+
+                        <button
+                            type="button"
+                            className="btn btn-outline"
+                            onClick={openImportModal}
+                            title="Import data kelas dari Excel"
+                        >
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                            >
+                                <path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z" />
+                            </svg>
+                            Import Excel
+                        </button>
 
                         <Link
                             href={route("admin.kelas.create")}
@@ -230,6 +291,97 @@ export default function Index({ kelasList, filters }: Props) {
                     </div>
                 )}
             </div>
+
+            {importModalOpen && (
+                <div className="modal-overlay open">
+                    <div className="modal">
+                        <form onSubmit={submitImport}>
+                            <div className="modal-head">
+                                <h3>Import Data Kelas</h3>
+                                <button
+                                    type="button"
+                                    className="modal-close"
+                                    onClick={closeImportModal}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            <div className="modal-body">
+                                <div className="info-panel">
+                                    <p
+                                        style={{
+                                            fontSize: 12,
+                                            color: "var(--gray4)",
+                                            lineHeight: 1.6,
+                                            margin: 0,
+                                        }}
+                                    >
+                                        Belum punya file? Download{" "}
+                                        <a
+                                            href={route("admin.kelas.template")}
+                                            style={{
+                                                color: "var(--blue)",
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            template Excel
+                                        </a>{" "}
+                                        terlebih dahulu, isi datanya, lalu
+                                        upload kembali di sini.
+                                    </p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        File Excel{" "}
+                                        <span className="req">*</span>
+                                    </label>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept=".xlsx,.xls,.csv"
+                                        className="form-input"
+                                        onChange={(e) =>
+                                            importForm.setData(
+                                                "file",
+                                                e.target.files?.[0] ?? null,
+                                            )
+                                        }
+                                    />
+                                    <div className="form-hint">
+                                        Format .xlsx, .xls, atau .csv. Maksimal
+                                        5MB.
+                                    </div>
+                                    {importForm.errors.file && (
+                                        <div className="form-error">
+                                            {importForm.errors.file}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="modal-foot">
+                                <button
+                                    type="button"
+                                    className="btn btn-outline"
+                                    onClick={closeImportModal}
+                                >
+                                    Batal
+                                </button>
+                                <LoadingButton
+                                    type="submit"
+                                    loading={importForm.processing}
+                                    loadingText="Mengimpor..."
+                                    disabled={!importForm.data.file}
+                                >
+                                    Upload &amp; Import
+                                </LoadingButton>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <ConfirmDeleteModal
                 open={deleteTarget !== null}

@@ -1,59 +1,275 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+  <h1>⚖️ SIPP — Sistem Informasi Pengelolaan Perkara</h1>
 
-## About Laravel
+  <p>Aplikasi web untuk mengelola data perkara secara digital — mulai dari pencatatan, pelacakan status, hingga cetak dokumen dan ekspor laporan.</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+  <p>
+    <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" />
+    <img src="https://img.shields.io/badge/Inertia.js-React-8b5cf6?style=for-the-badge&logo=react&logoColor=white" />
+    <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" />
+    <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
+  </p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+</div>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 📋 Daftar Isi
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- [Tentang Proyek](#-tentang-proyek)
+- [Fitur](#-fitur)
+- [Screenshot](#-screenshot)
+- [Tech Stack](#-tech-stack)
+- [Instalasi](#-instalasi)
+- [Login Demo](#-login-demo)
+- [Struktur Database](#-struktur-database)
+- [Author](#-author)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 📖 Tentang Proyek
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+**SIPP (Sistem Informasi Pengelolaan Perkara)** adalah aplikasi web yang dirancang untuk membantu instansi atau lembaga dalam mengelola data perkara secara terstruktur dan efisien.
 
-### Premium Partners
+Dengan antarmuka yang modern berbasis **React + Inertia.js**, pengguna dapat mencatat, memantau, dan mencetak dokumen perkara tanpa perlu berpindah sistem. Aplikasi ini juga dilengkapi sistem **role & permission** sehingga setiap pengguna hanya dapat mengakses fitur yang sesuai dengan kewenangannya.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## ✨ Fitur
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- 📁 **Manajemen Perkara** — Tambah, edit, hapus, dan cari data perkara dengan mudah
+- 👥 **Manajemen Pengguna** — Kelola akun pengguna beserta role dan permission-nya
+- 🔐 **Role & Permission** — Kontrol akses berbasis peran menggunakan Spatie Laravel Permission
+- 📊 **Ekspor Excel** — Unduh data perkara dalam format `.xlsx` siap pakai
+- 🖨️ **Cetak PDF** — Generate dan cetak dokumen perkara langsung dari browser
+- 📋 **Tabel Interaktif** — Sorting, filtering, dan pagination menggunakan TanStack Table
+- 🔔 **Notifikasi** — Konfirmasi aksi dengan SweetAlert2
+- ✅ **Validasi Form** — Validasi sisi klien menggunakan React Hook Form + Zod
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 📸 Screenshot
 
-## Security Vulnerabilities
+> **Petunjuk untuk pemilik repo:** Ganti gambar di bawah dengan screenshot asli aplikasimu.
+> Upload gambar ke folder `public/screenshots/` lalu sesuaikan path-nya.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Halaman Login
+<!-- Ganti src berikut dengan screenshot halaman login -->
+![Halaman Login](public/screenshots/login.png)
 
-## License
+### Dashboard
+<!-- Ganti src berikut dengan screenshot halaman dashboard/beranda -->
+![Dashboard](public/screenshots/dashboard.png)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Daftar Perkara
+<!-- Ganti src berikut dengan screenshot halaman list data perkara (tabel) -->
+![Daftar Perkara](public/screenshots/daftar-perkara.png)
+
+### Form Tambah Perkara
+<!-- Ganti src berikut dengan screenshot form input/edit perkara -->
+![Form Perkara](public/screenshots/form-perkara.png)
+
+### Manajemen Pengguna
+<!-- Ganti src berikut dengan screenshot halaman kelola user & role -->
+![Manajemen Pengguna](public/screenshots/manajemen-pengguna.png)
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend
+| Paket | Versi | Fungsi |
+|---|---|---|
+| Laravel | ^12.0 | Framework utama |
+| PHP | ^8.2 | Runtime |
+| Spatie Permission | ^6.25 | Role & permission |
+| barryvdh/laravel-dompdf | ^3.1 | Generate PDF |
+| Maatwebsite Excel | ^3.1 | Ekspor Excel |
+| Laravel Sanctum | ^4.0 | API authentication |
+| Laravel Breeze | ^2.4 | Starter kit autentikasi |
+
+### Frontend
+| Paket | Versi | Fungsi |
+|---|---|---|
+| Inertia.js (React) | ^2.0.0 | Jembatan Laravel ↔ React |
+| React | ^18.2.0 | UI library |
+| TypeScript | ^5.0.2 | Type-safe JavaScript |
+| Tailwind CSS | ^3.2.1 | Utility-first CSS |
+| TanStack Table | ^8.21.3 | Tabel interaktif |
+| React Hook Form | ^7.79.0 | Manajemen form |
+| Zod | ^4.4.3 | Validasi skema |
+| SweetAlert2 | ^11.26.25 | Dialog & notifikasi |
+| Vite | ^7.0.7 | Build tool |
+
+---
+
+## 🚀 Instalasi
+
+### Prasyarat
+
+Pastikan perangkat sudah terinstal:
+
+- **PHP** >= 8.2
+- **Composer**
+- **Node.js** >= 18 + **npm**
+- **SQLite** (sudah bawaan PHP) _atau_ **MySQL/MariaDB**
+
+---
+
+### Langkah Instalasi
+
+**1. Clone repository**
+
+```bash
+git clone https://github.com/saepudinasep/sipp-laravel.git
+cd sipp-laravel
+```
+
+**2. Instalasi otomatis** _(direkomendasikan)_
+
+```bash
+composer run setup
+```
+
+Perintah ini secara otomatis akan:
+- Install dependensi PHP & Node.js
+- Membuat file `.env`
+- Generate application key
+- Menjalankan migrasi database
+- Build aset frontend
+
+**3. Jalankan aplikasi**
+
+```bash
+composer run dev
+```
+
+Aplikasi berjalan di → **http://localhost:8000**
+
+---
+
+### Instalasi Manual _(opsional)_
+
+Jika ingin menjalankan langkah satu per satu:
+
+```bash
+# 1. Install dependensi PHP
+composer install
+
+# 2. Salin file konfigurasi environment
+cp .env.example .env
+
+# 3. Generate application key
+php artisan key:generate
+
+# 4. Jalankan migrasi database
+php artisan migrate
+
+# 5. (Opsional) Jalankan seeder untuk data awal
+php artisan db:seed
+
+# 6. Install dependensi Node.js
+npm install
+
+# 7. Build aset frontend
+npm run build
+
+# 8. Jalankan server
+php artisan serve
+```
+
+---
+
+### Konfigurasi Database
+
+Default menggunakan **SQLite** (tanpa konfigurasi tambahan). Untuk beralih ke **MySQL**, edit file `.env`:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=sipp_db
+DB_USERNAME=root
+DB_PASSWORD=password_kamu
+```
+
+Lalu jalankan ulang migrasi:
+
+```bash
+php artisan migrate
+```
+
+---
+
+## 🔑 Login Demo
+
+Gunakan akun berikut untuk mencoba aplikasi:
+
+| Role | Email | Password |
+|---|---|---|
+| Administrator | `admin@example.com` | `password` |
+| Operator | `operator@example.com` | `password` |
+
+> **Catatan:** Akun demo ini tersedia jika kamu sudah menjalankan `php artisan db:seed`.
+
+---
+
+## 🗄️ Struktur Database
+
+Berikut tabel-tabel utama yang digunakan dalam aplikasi:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     SIPP DATABASE                       │
+├──────────────────────┬──────────────────────────────────┤
+│ users                │ id, name, email, password        │
+│                      │ email_verified_at, remember_token│
+├──────────────────────┼──────────────────────────────────┤
+│ roles                │ id, name, guard_name             │
+│ permissions          │ id, name, guard_name             │
+│ model_has_roles      │ role_id, model_type, model_id    │
+│ model_has_permissions│ permission_id, model_type,       │
+│                      │ model_id                         │
+│ role_has_permissions │ permission_id, role_id           │
+├──────────────────────┼──────────────────────────────────┤
+│ perkara              │ id, nomor_perkara, judul,        │
+│                      │ jenis, status, tanggal_masuk,    │
+│                      │ keterangan, timestamps           │
+├──────────────────────┼──────────────────────────────────┤
+│ sessions             │ id, user_id, ip_address,         │
+│                      │ payload, last_activity           │
+│ cache                │ key, value, expiration           │
+│ jobs                 │ id, queue, payload, attempts     │
+└──────────────────────┴──────────────────────────────────┘
+```
+
+> **Catatan:** Skema lengkap ada di folder `database/migrations/`. Jalankan `php artisan migrate` untuk membuat semua tabel secara otomatis.
+
+---
+
+## 👤 Author
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/saepudinasep">
+        <img src="https://github.com/saepudinasep.png" width="100px;" alt="Saepudin Asep"/><br />
+        <b>Saepudin Asep</b>
+      </a>
+      <br />
+      <a href="https://github.com/saepudinasep">@saepudinasep</a>
+    </td>
+  </tr>
+</table>
+
+---
+
+<div align="center">
+  <p>Dibuat dengan ❤️ menggunakan Laravel & React</p>
+  <p>
+    <a href="https://github.com/saepudinasep/sipp-laravel/issues">Laporkan Bug</a> ·
+    <a href="https://github.com/saepudinasep/sipp-laravel/issues">Request Fitur</a>
+  </p>
+</div>
