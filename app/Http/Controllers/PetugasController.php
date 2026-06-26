@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PetugasExport;
+use App\Exports\PetugasTemplateExport;
+use App\Imports\PetugasImport;
 use App\Models\Petugas;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -9,9 +12,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Excel;
 
 class PetugasController extends Controller
 {
+    public function __construct(protected Excel $excel) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -29,7 +35,8 @@ class PetugasController extends Controller
                 });
             })
             ->orderBy('nama')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/Petugas/Index', [
             'petugasList' => $petugas,
@@ -151,5 +158,60 @@ class PetugasController extends Controller
         return redirect()
             ->route('admin.petugas.index')
             ->with('success', 'Data petugas berhasil dihapus.');
+    }
+
+
+    /**
+     * Export seluruh data petugas saat ini ke file Excel (.xlsx).
+     */
+    public function export()
+    {
+        return $this->excel->download(new PetugasExport(), 'data-petugas.xlsx');
+    }
+
+    /**
+     * Download template Excel kosong untuk diisi lalu di-import kembali.
+     */
+    public function downloadTemplate()
+    {
+        return $this->excel->download(new PetugasTemplateExport(), 'template-import-petugas.xlsx');
+    }
+
+    /**
+     * Import data petugas dari file Excel (.xlsx/.csv) hasil isian template.
+     * Setiap baris yang valid otomatis membuat akun User (role petugas)
+     * sekaligus data Petugas — sama seperti store(). Baris yang gagal
+     * dilaporkan tanpa menggagalkan baris lain yang valid.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:5120'],
+        ], [
+            'file.required' => 'Pilih file Excel terlebih dahulu.',
+            'file.mimes' => 'File harus berformat .xlsx, .xls, atau .csv.',
+            'file.max' => 'Ukuran file maksimal 5MB.',
+        ]);
+
+        $import = new PetugasImport();
+        $this->excel->import($import, $request->file('file'));
+
+        if (empty($import->gagal)) {
+            return redirect()
+                ->route('admin.petugas.index')
+                ->with('success', "{$import->berhasil} petugas berhasil diimpor.");
+        }
+
+        $pesanGagal = collect($import->gagal)
+            ->map(fn($g) => "Baris {$g['baris']}: {$g['pesan']}")
+            ->implode(' | ');
+
+        return redirect()
+            ->route('admin.petugas.index')
+            ->with(
+                $import->berhasil > 0 ? 'success' : 'error',
+                "{$import->berhasil} petugas berhasil diimpor. " .
+                    count($import->gagal) . " baris gagal — {$pesanGagal}",
+            );
     }
 }

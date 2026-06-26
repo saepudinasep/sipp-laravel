@@ -1,8 +1,10 @@
 import AppLayout from "@/Layouts/AppLayout";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
 import EmptyState from "@/Components/EmptyState";
-import { Head, Link, router } from "@inertiajs/react";
-import { useState } from "react";
+import LoadingButton from "@/Components/LoadingButton";
+import Pagination from "@/Components/Pagination";
+import { Head, Link, router, useForm } from "@inertiajs/react";
+import { FormEventHandler, useRef, useState } from "react";
 
 interface User {
     id: number;
@@ -18,8 +20,22 @@ interface Petugas {
     user: User | null;
 }
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PaginatedPetugas {
+    data: Petugas[];
+    links: PaginationLink[];
+    from: number | null;
+    to: number | null;
+    total: number;
+}
+
 interface Props {
-    petugasList: Petugas[];
+    petugasList: PaginatedPetugas;
     filters: {
         search: string | null;
     };
@@ -66,6 +82,10 @@ export default function Index({ petugasList, filters }: Props) {
     const [searching, setSearching] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<Petugas | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const importForm = useForm<{ file: File | null }>({ file: null });
 
     const handleSearch = () => {
         router.get(
@@ -100,6 +120,29 @@ export default function Index({ petugasList, filters }: Props) {
         });
     };
 
+    const openImportModal = () => {
+        importForm.reset();
+        importForm.clearErrors();
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setImportModalOpen(true);
+    };
+
+    const closeImportModal = () => {
+        setImportModalOpen(false);
+        importForm.reset();
+        importForm.clearErrors();
+    };
+
+    const submitImport: FormEventHandler = (e) => {
+        e.preventDefault();
+        if (!importForm.data.file) return;
+
+        importForm.post(route("admin.petugas.import"), {
+            forceFormData: true,
+            onSuccess: closeImportModal,
+        });
+    };
+
     return (
         <AppLayout title="Data Petugas">
             <Head title="Data Petugas" />
@@ -117,7 +160,7 @@ export default function Index({ petugasList, filters }: Props) {
                     <div>
                         <div className="card-title">Daftar Petugas</div>
                         <div className="card-subtitle">
-                            {petugasList.length} petugas aktif
+                            {petugasList.total} petugas aktif
                         </div>
                     </div>
 
@@ -181,6 +224,39 @@ export default function Index({ petugasList, filters }: Props) {
                             </button>
                         </div>
 
+                        <a
+                            href={route("admin.petugas.export")}
+                            className="btn btn-outline"
+                            title="Export data petugas ke Excel"
+                        >
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                            >
+                                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2v16c0 1.1.89 2 1.99 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1.17 13.13L11 13.41l-1.83 1.72L8 13.95l1.83-1.72L8 10.5l1.17-1.18L11 11.05l1.83-1.73L14 10.5l-1.83 1.19L14 13.95l-1.17 1.18z" />
+                            </svg>
+                            Export Excel
+                        </a>
+
+                        <button
+                            type="button"
+                            className="btn btn-outline"
+                            onClick={openImportModal}
+                            title="Import data petugas dari Excel"
+                        >
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                            >
+                                <path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z" />
+                            </svg>
+                            Import Excel
+                        </button>
+
                         <Link
                             href={route("admin.petugas.create")}
                             className="btn btn-primary"
@@ -198,114 +274,223 @@ export default function Index({ petugasList, filters }: Props) {
                     </div>
                 </div>
 
-                {petugasList.length === 0 ? (
+                {petugasList.data.length === 0 ? (
                     <EmptyState
                         title="Belum ada data petugas"
                         description="Klik tombol Tambah Petugas untuk menambahkan data baru."
                     />
                 ) : (
-                    <div className="table-wrap">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Nama Petugas</th>
-                                    <th>NIP</th>
-                                    <th>Jabatan</th>
-                                    <th>Username</th>
-                                    <th>Status</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {petugasList.map((petugas, idx) => (
-                                    <tr key={petugas.id}>
-                                        <td>{idx + 1}</td>
-                                        <td>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    gap: 10,
-                                                }}
-                                            >
+                    <>
+                        <div className="table-wrap">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Petugas</th>
+                                        <th>NIP</th>
+                                        <th>Jabatan</th>
+                                        <th>Username</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {petugasList.data.map((petugas, idx) => (
+                                        <tr key={petugas.id}>
+                                            <td>
+                                                {(petugasList.from ?? 1) + idx}
+                                            </td>
+                                            <td>
                                                 <div
-                                                    className="avatar-sm"
                                                     style={{
-                                                        background: avatarColor(
-                                                            petugas.nama,
-                                                        ),
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: 10,
                                                     }}
                                                 >
-                                                    {initials(petugas.nama)}
+                                                    <div
+                                                        className="avatar-sm"
+                                                        style={{
+                                                            background:
+                                                                avatarColor(
+                                                                    petugas.nama,
+                                                                ),
+                                                        }}
+                                                    >
+                                                        {initials(petugas.nama)}
+                                                    </div>
+                                                    <span className="td-name">
+                                                        {petugas.nama}
+                                                    </span>
                                                 </div>
-                                                <span className="td-name">
-                                                    {petugas.nama}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="td-mono">
-                                            {petugas.nip}
-                                        </td>
-                                        <td>
-                                            <span
-                                                className={`badge ${jabatanBadgeClass(
-                                                    petugas.jabatan,
-                                                )}`}
-                                            >
-                                                {petugas.jabatan}
-                                            </span>
-                                        </td>
-                                        <td className="td-mono">
-                                            {petugas.user?.email ?? "—"}
-                                        </td>
-                                        <td>
-                                            {petugas.user?.is_active ? (
-                                                <span className="badge badge-green">
-                                                    <span className="badge-dot" />
-                                                    Aktif
-                                                </span>
-                                            ) : (
-                                                <span className="badge badge-gray">
-                                                    <span className="badge-dot" />
-                                                    Nonaktif
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td>
-                                            <div className="td-actions">
-                                                <Link
-                                                    href={route(
-                                                        "admin.petugas.edit",
-                                                        petugas.id,
-                                                    )}
-                                                    className="btn-icon"
-                                                    title="Edit"
+                                            </td>
+                                            <td className="td-mono">
+                                                {petugas.nip}
+                                            </td>
+                                            <td>
+                                                <span
+                                                    className={`badge ${jabatanBadgeClass(
+                                                        petugas.jabatan,
+                                                    )}`}
                                                 >
-                                                    <svg viewBox="0 0 24 24">
-                                                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                                                    </svg>
-                                                </Link>
-                                                <button
-                                                    className="btn-icon danger"
-                                                    title="Hapus"
-                                                    onClick={() =>
-                                                        setDeleteTarget(petugas)
-                                                    }
-                                                >
-                                                    <svg viewBox="0 0 24 24">
-                                                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                                    {petugas.jabatan}
+                                                </span>
+                                            </td>
+                                            <td className="td-mono">
+                                                {petugas.user?.email ?? "—"}
+                                            </td>
+                                            <td>
+                                                {petugas.user?.is_active ? (
+                                                    <span className="badge badge-green">
+                                                        <span className="badge-dot" />
+                                                        Aktif
+                                                    </span>
+                                                ) : (
+                                                    <span className="badge badge-gray">
+                                                        <span className="badge-dot" />
+                                                        Nonaktif
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td>
+                                                <div className="td-actions">
+                                                    <Link
+                                                        href={route(
+                                                            "admin.petugas.edit",
+                                                            petugas.id,
+                                                        )}
+                                                        className="btn-icon"
+                                                        title="Edit"
+                                                    >
+                                                        <svg viewBox="0 0 24 24">
+                                                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                                                        </svg>
+                                                    </Link>
+                                                    <button
+                                                        className="btn-icon danger"
+                                                        title="Hapus"
+                                                        onClick={() =>
+                                                            setDeleteTarget(
+                                                                petugas,
+                                                            )
+                                                        }
+                                                    >
+                                                        <svg viewBox="0 0 24 24">
+                                                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <Pagination
+                            links={petugasList.links}
+                            from={petugasList.from ?? undefined}
+                            to={petugasList.to ?? undefined}
+                            total={petugasList.total}
+                        />
+                    </>
                 )}
             </div>
+
+            {importModalOpen && (
+                <div className="modal-overlay open">
+                    <div className="modal">
+                        <form onSubmit={submitImport}>
+                            <div className="modal-head">
+                                <h3>Import Data Petugas</h3>
+                                <button
+                                    type="button"
+                                    className="modal-close"
+                                    onClick={closeImportModal}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            <div className="modal-body">
+                                <div className="info-panel">
+                                    <p
+                                        style={{
+                                            fontSize: 12,
+                                            color: "var(--gray4)",
+                                            lineHeight: 1.6,
+                                            margin: 0,
+                                        }}
+                                    >
+                                        Belum punya file? Download{" "}
+                                        <a
+                                            href={route(
+                                                "admin.petugas.template",
+                                            )}
+                                            style={{
+                                                color: "var(--blue)",
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            template Excel
+                                        </a>{" "}
+                                        terlebih dahulu, isi datanya, lalu
+                                        upload kembali di sini. Kolom Password
+                                        boleh dikosongkan — jika kosong, NIP
+                                        otomatis dipakai sebagai password awal.
+                                    </p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        File Excel{" "}
+                                        <span className="req">*</span>
+                                    </label>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept=".xlsx,.xls,.csv"
+                                        className="form-input"
+                                        onChange={(e) =>
+                                            importForm.setData(
+                                                "file",
+                                                e.target.files?.[0] ?? null,
+                                            )
+                                        }
+                                    />
+                                    <div className="form-hint">
+                                        Format .xlsx, .xls, atau .csv. Maksimal
+                                        5MB.
+                                    </div>
+                                    {importForm.errors.file && (
+                                        <div className="form-error">
+                                            {importForm.errors.file}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="modal-foot">
+                                <button
+                                    type="button"
+                                    className="btn btn-outline"
+                                    onClick={closeImportModal}
+                                >
+                                    Batal
+                                </button>
+                                <LoadingButton
+                                    type="submit"
+                                    loading={importForm.processing}
+                                    loadingText="Mengimpor..."
+                                    disabled={!importForm.data.file}
+                                >
+                                    Upload &amp; Import
+                                </LoadingButton>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <ConfirmDeleteModal
                 open={deleteTarget !== null}

@@ -45,6 +45,15 @@ Route::middleware(['auth', 'role:admin'])
             ->parameters(['petugas' => 'petugas'])
             ->except(['show']);
 
+        Route::get('/petugas-export', [PetugasController::class, 'export'])
+            ->name('petugas.export');
+
+        Route::get('/petugas-template', [PetugasController::class, 'downloadTemplate'])
+            ->name('petugas.template');
+
+        Route::post('/petugas-import', [PetugasController::class, 'import'])
+            ->name('petugas.import');
+
         Route::resource('kelas', KelasController::class)
             ->parameters(['kelas' => 'kelas'])
             ->except(['show']);
