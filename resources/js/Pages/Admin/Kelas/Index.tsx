@@ -2,6 +2,7 @@ import AppLayout from "@/Layouts/AppLayout";
 import ConfirmDeleteModal from "@/Components/ConfirmDeleteModal";
 import EmptyState from "@/Components/EmptyState";
 import LoadingButton from "@/Components/LoadingButton";
+import Pagination from "@/Components/Pagination";
 import { Head, Link, router, useForm } from "@inertiajs/react";
 import { FormEventHandler, useRef, useState } from "react";
 
@@ -13,8 +14,22 @@ interface Kelas {
     siswa_count: number;
 }
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PaginatedKelas {
+    data: Kelas[];
+    links: PaginationLink[];
+    from: number | null;
+    to: number | null;
+    total: number;
+}
+
 interface Props {
-    kelasList: Kelas[];
+    kelasList: PaginatedKelas;
     filters: {
         search: string | null;
     };
@@ -109,7 +124,7 @@ export default function Index({ kelasList, filters }: Props) {
                     <div>
                         <div className="card-title">Daftar Kelas</div>
                         <div className="card-subtitle">
-                            {kelasList.length} kelas aktif
+                            {kelasList.total} kelas aktif
                         </div>
                     </div>
 
@@ -223,72 +238,85 @@ export default function Index({ kelasList, filters }: Props) {
                     </div>
                 </div>
 
-                {kelasList.length === 0 ? (
+                {kelasList.data.length === 0 ? (
                     <EmptyState
                         title="Belum ada data kelas"
                         description="Klik tombol Tambah Kelas untuk menambahkan data baru."
                     />
                 ) : (
-                    <div className="table-wrap">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Nama Kelas</th>
-                                    <th>Tingkat</th>
-                                    <th>Jurusan</th>
-                                    <th>Jumlah Siswa</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {kelasList.map((kelas, idx) => (
-                                    <tr key={kelas.id}>
-                                        <td>{idx + 1}</td>
-                                        <td className="td-name">
-                                            {kelas.nama_kelas}
-                                        </td>
-                                        <td>
-                                            <span
-                                                className={`badge ${TINGKAT_BADGE[kelas.tingkat]}`}
-                                            >
-                                                {kelas.tingkat}
-                                            </span>
-                                        </td>
-                                        <td>{kelas.jurusan}</td>
-                                        <td>{kelas.siswa_count} siswa</td>
-                                        <td>
-                                            <div className="td-actions">
-                                                <Link
-                                                    href={route(
-                                                        "admin.kelas.edit",
-                                                        kelas.id,
-                                                    )}
-                                                    className="btn-icon"
-                                                    title="Edit"
-                                                >
-                                                    <svg viewBox="0 0 24 24">
-                                                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                                                    </svg>
-                                                </Link>
-                                                <button
-                                                    className="btn-icon danger"
-                                                    title="Hapus"
-                                                    onClick={() =>
-                                                        setDeleteTarget(kelas)
-                                                    }
-                                                >
-                                                    <svg viewBox="0 0 24 24">
-                                                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </td>
+                    <>
+                        <div className="table-wrap">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Kelas</th>
+                                        <th>Tingkat</th>
+                                        <th>Jurusan</th>
+                                        <th>Jumlah Siswa</th>
+                                        <th>Aksi</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {kelasList.data.map((kelas, idx) => (
+                                        <tr key={kelas.id}>
+                                            <td>
+                                                {(kelasList.from ?? 1) + idx}
+                                            </td>
+                                            <td className="td-name">
+                                                {kelas.nama_kelas}
+                                            </td>
+                                            <td>
+                                                <span
+                                                    className={`badge ${TINGKAT_BADGE[kelas.tingkat]}`}
+                                                >
+                                                    {kelas.tingkat}
+                                                </span>
+                                            </td>
+                                            <td>{kelas.jurusan}</td>
+                                            <td>{kelas.siswa_count} siswa</td>
+                                            <td>
+                                                <div className="td-actions">
+                                                    <Link
+                                                        href={route(
+                                                            "admin.kelas.edit",
+                                                            kelas.id,
+                                                        )}
+                                                        className="btn-icon"
+                                                        title="Edit"
+                                                    >
+                                                        <svg viewBox="0 0 24 24">
+                                                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                                                        </svg>
+                                                    </Link>
+                                                    <button
+                                                        className="btn-icon danger"
+                                                        title="Hapus"
+                                                        onClick={() =>
+                                                            setDeleteTarget(
+                                                                kelas,
+                                                            )
+                                                        }
+                                                    >
+                                                        <svg viewBox="0 0 24 24">
+                                                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <Pagination
+                            links={kelasList.links}
+                            from={kelasList.from ?? undefined}
+                            to={kelasList.to ?? undefined}
+                            total={kelasList.total}
+                        />
+                    </>
                 )}
             </div>
 

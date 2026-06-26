@@ -30,7 +30,8 @@ class KelasController extends Controller
                 });
             })
             ->orderBy('nama_kelas')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/Kelas/Index', [
             'kelasList' => $kelas,

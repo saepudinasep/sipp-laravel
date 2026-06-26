@@ -27,18 +27,28 @@ export default function Pagination({ links, from, to, total }: Props) {
             </span>
 
             <div className="page-btns">
-                {links.map((link, i) => (
-                    <Link
-                        key={i}
-                        href={link.url ?? "#"}
-                        className={
-                            "page-btn" +
-                            (link.active ? " active" : "") +
-                            (!link.url ? " disabled" : "")
-                        }
-                        dangerouslySetInnerHTML={{ __html: link.label }}
-                    />
-                ))}
+                {links.map((link, i) => {
+                    let label = link.label;
+
+                    if (label.includes("Previous")) {
+                        label = "←";
+                    } else if (label.includes("Next")) {
+                        label = "→";
+                    }
+
+                    return (
+                        <Link
+                            key={i}
+                            href={link.url ?? "#"}
+                            className={
+                                "page-btn" +
+                                (link.active ? " active" : "") +
+                                (!link.url ? " disabled" : "")
+                            }
+                            dangerouslySetInnerHTML={{ __html: label }}
+                        />
+                    );
+                })}
             </div>
         </div>
     );
