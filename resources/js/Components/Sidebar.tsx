@@ -6,8 +6,19 @@ interface MenuItem {
     badge?: number;
 }
 
+interface SidebarUser {
+    name?: string;
+    email: string;
+    role?: string;
+}
+
 interface Props {
     menus: MenuItem[];
+    user?: SidebarUser;
+    /** Status terbuka di tampilan mobile (di bawah breakpoint 860px). */
+    isOpen?: boolean;
+    /** Dipanggil saat menu diklik atau overlay di-tap, untuk menutup sidebar di mobile. */
+    onClose?: () => void;
 }
 
 /**
@@ -31,6 +42,7 @@ const ICONS: Record<string, string> = {
         "M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z",
     laporan:
         "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z",
+    profil: "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
 };
 
 function iconFor(name: string) {
@@ -41,51 +53,94 @@ function iconFor(name: string) {
     return ICONS.dashboard;
 }
 
-export default function Sidebar({ menus }: Props) {
+export default function Sidebar({ menus, user, isOpen, onClose }: Props) {
     const { url } = usePage();
 
+    const initials = (user?.name || user?.email || "?")
+        .trim()
+        .split(/\s+/)
+        .map((part) => part[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase();
+
     return (
-        <aside className="sidebar">
-            <Link href="/" className="sidebar-logo">
-                <div className="sidebar-logo-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
-                    </svg>
-                </div>
-                <div className="sidebar-logo-text">
-                    SiPP
-                    <small>Sistem Pembayaran SPP</small>
-                </div>
-            </Link>
+        <>
+            {/* Overlay gelap di mobile saat sidebar terbuka — tap di luar untuk menutup. */}
+            {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
 
-            <div className="sidebar-section">
-                {menus.map((menu) => {
-                    const href = route(menu.route);
-                    const isActive = url.startsWith(
-                        href.replace(/^https?:\/\/[^/]+/, ""),
-                    );
+            <aside className={"sidebar" + (isOpen ? " open" : "")}>
+                <Link href="/" className="sidebar-logo">
+                    <div className="sidebar-logo-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
+                        </svg>
+                    </div>
+                    <div className="sidebar-logo-text">
+                        SiPP
+                        <small>Sistem Pembayaran SPP</small>
+                    </div>
+                </Link>
 
-                    return (
-                        <Link
-                            key={menu.route}
-                            href={href}
-                            className={"nav-item" + (isActive ? " active" : "")}
-                        >
-                            <svg
-                                className="nav-icon"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
+                <div className="sidebar-section">
+                    {menus.map((menu) => {
+                        const href = route(menu.route);
+                        const isActive = url.startsWith(
+                            href.replace(/^https?:\/\/[^/]+/, ""),
+                        );
+
+                        return (
+                            <Link
+                                key={menu.route}
+                                href={href}
+                                onClick={onClose}
+                                className={
+                                    "nav-item" + (isActive ? " active" : "")
+                                }
                             >
-                                <path d={iconFor(menu.name)} />
-                            </svg>
-                            {menu.name}
-                            {menu.badge !== undefined && (
-                                <span className="nav-badge">{menu.badge}</span>
-                            )}
+                                <svg
+                                    className="nav-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                >
+                                    <path d={iconFor(menu.name)} />
+                                </svg>
+                                {menu.name}
+                                {menu.badge !== undefined && (
+                                    <span className="nav-badge">
+                                        {menu.badge}
+                                    </span>
+                                )}
+                            </Link>
+                        );
+                    })}
+                </div>
+
+                {user && (
+                    <div className="sidebar-footer">
+                        <div className="user-card">
+                            <div className="user-avatar">{initials}</div>
+                            <div>
+                                <div className="user-name">
+                                    {user.name || user.email}
+                                </div>
+                                {user.role && (
+                                    <div className="user-role">{user.role}</div>
+                                )}
+                            </div>
+                        </div>
+
+                        <Link
+                            href={route("logout")}
+                            method="post"
+                            as="button"
+                            className="logout-btn"
+                        >
+                            ← Keluar
                         </Link>
-                    );
-                })}
-            </div>
-        </aside>
+                    </div>
+                )}
+            </aside>
+        </>
     );
 }

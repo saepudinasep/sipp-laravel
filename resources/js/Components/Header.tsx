@@ -1,57 +1,28 @@
-import { Link } from "@inertiajs/react";
-
-interface HeaderUser {
-    name?: string;
-    email: string;
-    role?: string;
-}
-
 interface Props {
     title: string;
-    user: HeaderUser;
+    onMenuClick?: () => void;
 }
 
-export default function Header({ title, user }: Props) {
-    const initials = (user.name || user.email || "?")
-        .trim()
-        .split(/\s+/)
-        .map((part) => part[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase();
-
+export default function Header({ title, onMenuClick }: Props) {
     return (
         <header className="topbar">
-            <h2 className="topbar-title">{title}</h2>
-
-            <div className="topbar-user">
-                <div className="user-avatar">{initials}</div>
-
-                <div className="topbar-user-info">
-                    <div className="topbar-user-email">
-                        {user.name || user.email}
-                    </div>
-                    {user.role && (
-                        <div className="topbar-user-role">{user.role}</div>
-                    )}
-                </div>
-
-                <Link
-                    href={route("logout")}
-                    method="post"
-                    as="button"
-                    className="topbar-logout"
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <button
+                    type="button"
+                    className="hamburger-btn"
+                    onClick={onMenuClick}
+                    aria-label="Buka menu navigasi"
                 >
                     <svg
-                        width="14"
-                        height="14"
+                        width="20"
+                        height="20"
                         viewBox="0 0 24 24"
                         fill="currentColor"
                     >
-                        <path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0013 21a9 9 0 000-18z" />
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
                     </svg>
-                    Logout
-                </Link>
+                </button>
+                <h2 className="topbar-title">{title}</h2>
             </div>
         </header>
     );

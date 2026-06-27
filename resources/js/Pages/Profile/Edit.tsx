@@ -1,14 +1,10 @@
 import AppLayout from "@/Layouts/AppLayout";
 import { PageProps } from "@/types";
 import { Head } from "@inertiajs/react";
-import DeleteUserForm from "./Partials/DeleteUserForm";
 import UpdatePasswordForm from "./Partials/UpdatePasswordForm";
 import UpdateProfileInformationForm from "./Partials/UpdateProfileInformationForm";
 
-export default function Edit({
-    mustVerifyEmail,
-    status,
-}: PageProps<{ mustVerifyEmail: boolean; status?: string }>) {
+export default function Edit({ status }: PageProps<{ status?: string }>) {
     return (
         <AppLayout title="Profil Saya">
             <Head title="Profil" />
@@ -22,7 +18,6 @@ export default function Edit({
                 <div className="card">
                     <div className="card-body">
                         <UpdateProfileInformationForm
-                            mustVerifyEmail={mustVerifyEmail}
                             status={status}
                             className="max-w-xl"
                         />
@@ -32,12 +27,6 @@ export default function Edit({
                 <div className="card">
                     <div className="card-body">
                         <UpdatePasswordForm className="max-w-xl" />
-                    </div>
-                </div>
-
-                <div className="card">
-                    <div className="card-body">
-                        <DeleteUserForm className="max-w-xl" />
                     </div>
                 </div>
             </div>

@@ -1,4 +1,5 @@
 import { usePage } from "@inertiajs/react";
+import { useEffect, useState } from "react";
 import Sidebar from "@/Components/Sidebar";
 import Header from "@/Components/Header";
 import Toast from "@/Components/Toast";
@@ -11,6 +12,19 @@ export default function AppLayout({ children, title }: any) {
 
     const role = auth?.user?.role ?? "";
 
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // Tutup otomatis saat layar dibesarkan kembali ke ukuran desktop,
+    // supaya sidebar tidak "nyangkut" terbuka kalau user resize window
+    // setelah membukanya di mobile.
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth > 860) setSidebarOpen(false);
+        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
     const menus = {
         admin: [
             { name: "Dashboard", route: "admin.dashboard" },
@@ -20,17 +34,20 @@ export default function AppLayout({ children, title }: any) {
             { name: "Data SPP", route: "admin.spp.index" },
             { name: "Histori Pembayaran", route: "admin.histori.index" },
             { name: "Laporan", route: "admin.laporan.index" },
+            { name: "Profil", route: "profile.edit" },
         ],
 
         petugas: [
             { name: "Dashboard", route: "petugas.dashboard" },
             { name: "Entri Pembayaran", route: "petugas.transaksi.index" },
             { name: "Histori Pembayaran", route: "petugas.histori.index" },
+            { name: "Profil", route: "profile.edit" },
         ],
 
         siswa: [
             { name: "Dashboard", route: "siswa.dashboard" },
             { name: "Histori Pembayaran", route: "siswa.histori.index" },
+            { name: "Profil", route: "profile.edit" },
         ],
     };
 
@@ -38,10 +55,18 @@ export default function AppLayout({ children, title }: any) {
 
     return (
         <div className="app-shell">
-            <Sidebar menus={sidebarMenus} />
+            <Sidebar
+                menus={sidebarMenus}
+                user={auth?.user}
+                isOpen={sidebarOpen}
+                onClose={() => setSidebarOpen(false)}
+            />
 
             <div className="main-shell">
-                <Header title={title} user={auth?.user} />
+                <Header
+                    title={title}
+                    onMenuClick={() => setSidebarOpen((prev) => !prev)}
+                />
 
                 <main className="main-content">{children}</main>
             </div>

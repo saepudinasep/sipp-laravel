@@ -1,8 +1,8 @@
 export interface User {
     id: number;
-    name: string;
     email: string;
     role?: "admin" | "petugas" | "siswa" | string;
+    is_active?: boolean;
     email_verified_at?: string;
 }
 
