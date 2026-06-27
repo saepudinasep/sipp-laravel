@@ -41,6 +41,15 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('siswa', SiswaController::class)
             ->except(['show']);
 
+        Route::get('/siswa-export', [SiswaController::class, 'export'])
+            ->name('siswa.export');
+
+        Route::get('/siswa-template', [SiswaController::class, 'downloadTemplate'])
+            ->name('siswa.template');
+
+        Route::post('/siswa-import', [SiswaController::class, 'import'])
+            ->name('siswa.import');
+
         Route::resource('petugas', PetugasController::class)
             ->parameters(['petugas' => 'petugas'])
             ->except(['show']);

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\SiswaExport;
+use App\Exports\SiswaTemplateExport;
+use App\Imports\SiswaImport;
 use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\User;
@@ -10,9 +13,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Excel;
 
 class SiswaController extends Controller
 {
+    public function __construct(protected Excel $excel) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -163,5 +169,59 @@ class SiswaController extends Controller
         return redirect()
             ->route('admin.siswa.index')
             ->with('success', 'Data siswa berhasil dihapus.');
+    }
+
+    /**
+     * Export seluruh data siswa saat ini ke file Excel (.xlsx).
+     */
+    public function export()
+    {
+        return $this->excel->download(new SiswaExport(), 'data-siswa.xlsx');
+    }
+
+    /**
+     * Download template Excel kosong untuk diisi lalu di-import kembali.
+     */
+    public function downloadTemplate()
+    {
+        return $this->excel->download(new SiswaTemplateExport(), 'template-import-siswa.xlsx');
+    }
+
+    /**
+     * Import data siswa dari file Excel (.xlsx/.csv) hasil isian template.
+     * Setiap baris yang valid otomatis membuat akun User (role siswa)
+     * sekaligus data Siswa. Baris yang gagal dilaporkan tanpa
+     * menggagalkan baris lain yang valid.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:5120'],
+        ], [
+            'file.required' => 'Pilih file Excel terlebih dahulu.',
+            'file.mimes' => 'File harus berformat .xlsx, .xls, atau .csv.',
+            'file.max' => 'Ukuran file maksimal 5MB.',
+        ]);
+
+        $import = new SiswaImport();
+        $this->excel->import($import, $request->file('file'));
+
+        if (empty($import->gagal)) {
+            return redirect()
+                ->route('admin.siswa.index')
+                ->with('success', "{$import->berhasil} siswa berhasil diimpor.");
+        }
+
+        $pesanGagal = collect($import->gagal)
+            ->map(fn($g) => "Baris {$g['baris']}: {$g['pesan']}")
+            ->implode(' | ');
+
+        return redirect()
+            ->route('admin.siswa.index')
+            ->with(
+                $import->berhasil > 0 ? 'success' : 'error',
+                "{$import->berhasil} siswa berhasil diimpor. " .
+                    count($import->gagal) . " baris gagal — {$pesanGagal}",
+            );
     }
 }

@@ -392,6 +392,7 @@ export default function Index({ petugasList, filters }: Props) {
                             from={petugasList.from ?? undefined}
                             to={petugasList.to ?? undefined}
                             total={petugasList.total}
+                            itemLabel="Data Petugas"
                         />
                     </>
                 )}

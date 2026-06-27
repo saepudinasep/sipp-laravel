@@ -315,6 +315,7 @@ export default function Index({ kelasList, filters }: Props) {
                             from={kelasList.from ?? undefined}
                             to={kelasList.to ?? undefined}
                             total={kelasList.total}
+                            itemLabel="Data Kelas"
                         />
                     </>
                 )}

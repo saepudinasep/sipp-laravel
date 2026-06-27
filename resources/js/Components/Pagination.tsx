@@ -11,9 +11,17 @@ interface Props {
     from?: number;
     to?: number;
     total?: number;
+    /** Satuan item yang ditampilkan, contoh: "siswa", "jenis SPP". Default "data". */
+    itemLabel?: string;
 }
 
-export default function Pagination({ links, from, to, total }: Props) {
+export default function Pagination({
+    links,
+    from,
+    to,
+    total,
+    itemLabel = "data",
+}: Props) {
     if (!links || links.length <= 3) {
         return null;
     }
@@ -22,7 +30,7 @@ export default function Pagination({ links, from, to, total }: Props) {
         <div className="pagination">
             <span>
                 {from && to && total
-                    ? `Menampilkan ${from}–${to} dari ${total} data`
+                    ? `Menampilkan ${from}–${to} dari ${total} ${itemLabel}`
                     : ""}
             </span>
 
