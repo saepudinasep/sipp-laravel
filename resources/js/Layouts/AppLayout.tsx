@@ -19,7 +19,7 @@ export default function AppLayout({ children, title }: any) {
     // setelah membukanya di mobile.
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth > 860) setSidebarOpen(false);
+            if (window.innerWidth > 1024) setSidebarOpen(false);
         };
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);

@@ -86,7 +86,7 @@ export default function Welcome({
                     <div className="hero-content">
                         <div className="hero-badge reveal">
                             <div className="hero-badge-dot" />
-                            Platform Aktif · Versi 2.0
+                            Platform Aktif · Versi 1.0
                         </div>
                         <h1 className="hero-title reveal">
                             Kelola SPP Sekolah
@@ -155,7 +155,7 @@ export default function Welcome({
                                 </div>
                                 <div className="mock-amount">Rp 28,35 jt</div>
                                 <div className="mock-sub">
-                                    Total terkumpul · Maret 2024
+                                    Total terkumpul · Maret 2026
                                 </div>
                                 <div className="mock-bar-bg">
                                     <div className="mock-bar-fill" />
@@ -630,10 +630,10 @@ export default function Welcome({
                     </div>
                     <div className="footer-bottom">
                         <p className="footer-copy">
-                            © 2024 SiPP — Sistem Pembayaran SPP. Dikembangkan
-                            untuk SMK RPL.
+                            © 2026 SiPP — Sistem Pembayaran SPP. Masih bisa
+                            dikembangkan sesuai kebutuhan.
                         </p>
-                        <span className="footer-version">v2.0.0</span>
+                        <span className="footer-version">v1.0.0</span>
                     </div>
                 </div>
             </footer>
